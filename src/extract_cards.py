@@ -147,16 +147,6 @@ def _filter_and_sort_contours(
     return result
 
 
-def page_cards_complete(page_path: Path, config: Config) -> bool:
-    """Check whether boxes JSON and all referenced card PNGs exist for a page."""
-    stem = page_path.stem
-    boxes_path = config.extracted_cards_dir / f"{stem}_boxes.json"
-    if not boxes_path.exists():
-        return False
-    boxes = json.loads(boxes_path.read_text(encoding="utf-8"))
-    return all((config.extracted_cards_dir / f"{s}.png").exists() for s in boxes)
-
-
 def extract_cards_from_page(
     page_path: Path,
     config: Config,

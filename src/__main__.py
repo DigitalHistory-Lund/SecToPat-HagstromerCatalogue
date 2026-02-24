@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from .config import load_config
 from .embed_text import embed_text_in_pdf
-from .extract_cards import extract_cards_from_page, page_cards_complete
+from .extract_cards import extract_cards_from_page
 from .extract_pages import extract_pages_from_pdf
 from .ocr_cards import ocr_card
 from .subset import select_subset
@@ -69,7 +69,7 @@ def main() -> None:
         if run_cards:
             all_page_paths = [
                 p for vol in sorted(page_paths_by_vol) for p in page_paths_by_vol[vol]
-                if p.exists() and (args.force or not page_cards_complete(p, config))
+                if p.exists()
             ]
             with tqdm(all_page_paths, unit="page") as bar:
                 for page_path in bar:
@@ -120,8 +120,6 @@ def main() -> None:
 
         if run_cards:
             page_images = sorted(config.extracted_images_dir.glob("*.png"))
-            if not args.force:
-                page_images = [p for p in page_images if not page_cards_complete(p, config)]
             with tqdm(page_images, unit="page") as bar:
                 for page_path in bar:
                     bar.desc = f"Cards {page_path.stem}"
