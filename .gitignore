@@ -1,0 +1,5 @@
+.venv/
+.env
+
+extracted_cards/
+extracted_images/
