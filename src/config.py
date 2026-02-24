@@ -14,6 +14,8 @@ class Config:
     raw_cat_path: Path
     extracted_images_dir: Path
     extracted_cards_dir: Path
+    ocr_output_dir: Path
+    ocr_model: str
     seed: int
     num_pdf: int
     num_pages: int
@@ -31,6 +33,8 @@ def load_config() -> Config:
         raw_cat_path=Path(raw),
         extracted_images_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_IMAGES_DIR", "extracted_images"),
         extracted_cards_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_CARDS_DIR", "extracted_cards"),
+        ocr_output_dir=PROJECT_ROOT / os.environ.get("OCR_OUTPUT_DIR", "ocr_output"),
+        ocr_model=os.environ.get("OCR_MODEL", "qwen3-vl:2b"),
         seed=int(os.environ.get("SEED", "1")),
         num_pdf=int(os.environ.get("NUM_PDF", "1")),
         num_pages=int(os.environ.get("NUM_PAGES", "1")),
