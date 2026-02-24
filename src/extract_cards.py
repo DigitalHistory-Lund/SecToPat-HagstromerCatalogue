@@ -12,29 +12,31 @@ from tqdm import tqdm
 from .config import Config, load_config
 
 
-def _classify_background(gray: np.ndarray) -> str:
+def _classify_background(gray: np.ndarray, config: Config) -> str:
     """Classify page background as 'light' or 'dark' by sampling border pixels."""
     h, w = gray.shape
-    border = 20
+    border = config.cv_bg_border
     samples = np.concatenate([
         gray[:border, :].ravel(),       # top
         gray[-border:, :].ravel(),      # bottom
         gray[:, :border].ravel(),       # left
         gray[:, -border:].ravel(),      # right
     ])
-    return "dark" if np.median(samples) < 128 else "light"
+    return "dark" if np.median(samples) < config.cv_bg_threshold else "light"
 
 
-def _find_card_contours_light(gray: np.ndarray, debug_dir: Path | None = None) -> list:
+def _find_card_contours_light(gray: np.ndarray, config: Config, debug_dir: Path | None = None) -> list:
     """Find card contours on a light background using Canny + dilation."""
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blurred, 30, 100)
+    k = config.cv_light_blur_size
+    blurred = cv2.GaussianBlur(gray, (k, k), 0)
+    edges = cv2.Canny(blurred, config.cv_light_canny_low, config.cv_light_canny_high)
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "01_edges.png"), edges)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))
-    dilated = cv2.dilate(edges, kernel, iterations=3)
+    dk = config.cv_light_dilate_size
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (dk, dk))
+    dilated = cv2.dilate(edges, kernel, iterations=config.cv_light_dilate_iter)
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "02_dilated.png"), dilated)
@@ -43,15 +45,16 @@ def _find_card_contours_light(gray: np.ndarray, debug_dir: Path | None = None) -
     return contours
 
 
-def _find_card_contours_dark(gray: np.ndarray, debug_dir: Path | None = None) -> list:
+def _find_card_contours_dark(gray: np.ndarray, config: Config, debug_dir: Path | None = None) -> list:
     """Find card contours on a dark background using binary threshold."""
-    _, thresh = cv2.threshold(gray, 160, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(gray, config.cv_dark_thresh_value, 255, cv2.THRESH_BINARY)
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "01_thresh.png"), thresh)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
+    ck = config.cv_dark_close_size
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (ck, ck))
+    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=config.cv_dark_close_iter)
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "02_closed.png"), closed)
@@ -64,6 +67,7 @@ def _filter_and_sort_contours(
     contours: list,
     img_h: int,
     img_w: int,
+    config: Config,
     debug_dir: Path | None = None,
     debug_img: np.ndarray | None = None,
 ) -> list[tuple[int, int, int, int, int, int]]:
@@ -72,12 +76,6 @@ def _filter_and_sort_contours(
     Returns list of (x, y, w, h, col, row) sorted by row then col.
     """
     img_area = img_h * img_w
-    min_area_ratio = 0.02
-    max_area_ratio = 0.40
-    min_dim = 200
-    min_aspect = 1.0
-    max_aspect = 3.0
-    min_rectangularity = 0.60
 
     candidates: list[tuple[int, int, int, int]] = []
     for cnt in contours:
@@ -85,18 +83,18 @@ def _filter_and_sort_contours(
         area = w * h
         area_ratio = area / img_area
 
-        if area_ratio < min_area_ratio or area_ratio > max_area_ratio:
+        if area_ratio < config.cv_min_area_ratio or area_ratio > config.cv_max_area_ratio:
             continue
-        if w < min_dim or h < min_dim:
+        if w < config.cv_min_dim or h < config.cv_min_dim:
             continue
 
         aspect = w / h if h > 0 else 0
-        if aspect < min_aspect or aspect > max_aspect:
+        if aspect < config.cv_min_aspect or aspect > config.cv_max_aspect:
             continue
 
         cnt_area = cv2.contourArea(cnt)
         rectangularity = cnt_area / area if area > 0 else 0
-        if rectangularity < min_rectangularity:
+        if rectangularity < config.cv_min_rectangularity:
             continue
 
         candidates.append((x, y, w, h))
@@ -112,7 +110,7 @@ def _filter_and_sort_contours(
 
     # Cluster into grid rows by y-center proximity
     y_centers = [y + h // 2 for _, y, _, h in candidates]
-    row_threshold = img_h * 0.05  # 5% of image height
+    row_threshold = img_h * config.cv_row_threshold
 
     # Sort by y-center to cluster rows
     indexed = sorted(enumerate(candidates), key=lambda t: y_centers[t[0]])
@@ -174,18 +172,18 @@ def extract_cards_from_page(
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape
 
-    bg = _classify_background(gray)
+    bg = _classify_background(gray, config)
 
     if debug_dir:
         debug_dir.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(debug_dir / "00_gray.png"), gray)
 
     if bg == "dark":
-        contours = _find_card_contours_dark(gray, debug_dir)
+        contours = _find_card_contours_dark(gray, config, debug_dir)
     else:
-        contours = _find_card_contours_light(gray, debug_dir)
+        contours = _find_card_contours_light(gray, config, debug_dir)
 
-    cards = _filter_and_sort_contours(contours, h, w, debug_dir, img)
+    cards = _filter_and_sort_contours(contours, h, w, config, debug_dir, img)
 
     if max_cards is not None:
         cards = cards[:max_cards]
