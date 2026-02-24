@@ -1,7 +1,6 @@
 """Detect and extract individual catalogue cards from page images using OpenCV."""
 
 import argparse
-import json
 import tempfile
 from pathlib import Path
 
@@ -165,15 +164,6 @@ def extract_cards_from_page(
     volume, page_str = stem.split("_", 1)
     page_nr = int(page_str)
 
-    # Fast path: if boxes JSON exists and all card PNGs exist, skip OpenCV
-    if not force:
-        boxes_path = config.extracted_cards_dir / f"{volume}_{page_nr:04d}_boxes.json"
-        if boxes_path.exists():
-            boxes = json.loads(boxes_path.read_text(encoding="utf-8"))
-            card_paths = [config.extracted_cards_dir / f"{s}.png" for s in boxes]
-            if all(p.exists() for p in card_paths):
-                return card_paths[:max_cards] if max_cards is not None else card_paths
-
     img = cv2.imread(str(page_path))
     if img is None:
         print(f"  WARNING: Could not read {page_path}")
@@ -199,27 +189,17 @@ def extract_cards_from_page(
         cards = cards[:max_cards]
 
     output_paths: list[Path] = []
-    boxes: dict[str, list[int]] = {}
-    all_exist = True
     for x, y, cw, ch, col, row in cards:
         card_stem = f"{volume}_{page_nr:04d}_{col}_{row}"
         out_path = config.extracted_cards_dir / f"{card_stem}.png"
-        boxes[card_stem] = [x, y, cw, ch]
 
         if out_path.exists() and not force:
             output_paths.append(out_path)
             continue
 
-        all_exist = False
         card_img = img[y : y + ch, x : x + cw]
         cv2.imwrite(str(out_path), card_img)
         output_paths.append(out_path)
-
-    # Write boxes sidecar JSON
-    if boxes:
-        boxes_path = config.extracted_cards_dir / f"{volume}_{page_nr:04d}_boxes.json"
-        if force or not all_exist or not boxes_path.exists():
-            boxes_path.write_text(json.dumps(boxes, indent=2), encoding="utf-8")
 
     return output_paths
 

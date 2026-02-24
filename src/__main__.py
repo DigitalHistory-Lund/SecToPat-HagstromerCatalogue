@@ -7,7 +7,6 @@ from pathlib import Path
 from tqdm import tqdm
 
 from .config import load_config
-from .embed_text import embed_text_in_pdf
 from .extract_cards import extract_cards_from_page
 from .extract_pages import extract_pages_from_pdf
 from .ocr_cards import ocr_card
@@ -18,7 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Hagstrom catalogue extraction pipeline")
     parser.add_argument("--force", action="store_true", help="Overwrite existing outputs")
     parser.add_argument("--all", action="store_true", help="Process all volumes instead of the seeded subset")
-    parser.add_argument("--step", choices=["pages", "cards", "ocr", "embed"], help="Run a single step")
+    parser.add_argument("--step", choices=["pages", "cards", "ocr"], help="Run a single step")
     parser.add_argument("--debug", action="store_true", help="Save intermediate card-detection images")
     args = parser.parse_args()
 
@@ -26,7 +25,6 @@ def main() -> None:
     run_pages = args.step in (None, "pages")
     run_cards = args.step in (None, "cards")
     run_ocr = args.step in (None, "ocr")
-    run_embed = args.step in (None, "embed")
 
     debug_base = None
     if args.debug and run_cards:
@@ -98,17 +96,6 @@ def main() -> None:
                     bar.desc = f"OCR {card_path.stem}"
                     ocr_card(card_path, config, force=args.force)
 
-        # --- Embed ---
-        if run_embed:
-            volumes = sorted(selection.volumes)
-            pdf_files = [config.raw_cat_path / f"{v}.pdf" for v in volumes]
-            pdf_files = [p for p in pdf_files if p.exists()]
-            if not args.force:
-                pdf_files = [p for p in pdf_files if not (config.searchable_pdfs_dir / f"{p.stem}.pdf").exists()]
-            with tqdm(pdf_files, unit="vol") as bar:
-                for pdf_path in bar:
-                    bar.desc = f"Embed {pdf_path.stem}"
-                    embed_text_in_pdf(pdf_path, config, force=args.force)
     else:
         pdf_files = sorted(config.raw_cat_path.glob("*.pdf"))
 
@@ -134,15 +121,6 @@ def main() -> None:
                 for card_path in bar:
                     bar.desc = f"OCR {card_path.stem}"
                     ocr_card(card_path, config, force=args.force)
-
-        if run_embed:
-            embed_pdfs = sorted(config.raw_cat_path.glob("*.pdf"))
-            if not args.force:
-                embed_pdfs = [p for p in embed_pdfs if not (config.searchable_pdfs_dir / f"{p.stem}.pdf").exists()]
-            with tqdm(embed_pdfs, unit="vol") as bar:
-                for pdf_path in bar:
-                    bar.desc = f"Embed {pdf_path.stem}"
-                    embed_text_in_pdf(pdf_path, config, force=args.force)
 
 
 if __name__ == "__main__":
