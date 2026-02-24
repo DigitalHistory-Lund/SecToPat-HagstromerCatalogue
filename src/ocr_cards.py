@@ -50,6 +50,9 @@ def main() -> None:
         print("No card images found. Run extract_cards first.")
         return
 
+    if not args.force:
+        card_images = [p for p in card_images if not (config.ocr_output_dir / f"{p.stem}.txt").exists()]
+
     with tqdm(card_images, unit="card") as bar:
         for card_path in bar:
             bar.desc = f"OCR {card_path.stem}"

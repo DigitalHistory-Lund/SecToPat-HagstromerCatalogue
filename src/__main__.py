@@ -35,32 +35,42 @@ def main() -> None:
         selection = select_subset(config)
 
         # --- Pages ---
+        # Always build expected paths (needed by cards step)
         page_paths_by_vol: dict[str, list[Path]] = {}
+        for volume, page_indices in selection.volumes.items():
+            page_paths_by_vol[volume] = [
+                config.extracted_images_dir / f"{volume}_{idx:04d}.png"
+                for idx in page_indices
+            ]
+
         if run_pages:
-            total = sum(len(pi) for pi in selection.volumes.values())
+            # Filter to pages that actually need rendering
+            pending: list[tuple[str, list[int]]] = []
+            for volume in sorted(selection.volumes):
+                indices = [
+                    idx for idx in selection.volumes[volume]
+                    if args.force or not (config.extracted_images_dir / f"{volume}_{idx:04d}.png").exists()
+                ]
+                if indices:
+                    pending.append((volume, indices))
+
+            total = sum(len(idxs) for _, idxs in pending)
             with tqdm(total=total, unit="page") as bar:
-                for volume in sorted(selection.volumes):
-                    page_indices = selection.volumes[volume]
+                for volume, indices in pending:
                     pdf_path = config.raw_cat_path / f"{volume}.pdf"
                     bar.desc = f"Pages {volume}"
-                    paths = extract_pages_from_pdf(pdf_path, config, force=args.force, page_indices=page_indices)
-                    page_paths_by_vol[volume] = paths
-                    bar.update(len(page_indices))
-        else:
-            for volume, page_indices in selection.volumes.items():
-                page_paths_by_vol[volume] = [
-                    config.extracted_images_dir / f"{volume}_{idx:04d}.png"
-                    for idx in page_indices
-                ]
+                    extract_pages_from_pdf(pdf_path, config, force=args.force, page_indices=indices)
+                    bar.update(len(indices))
 
         # --- Cards ---
         card_paths: list[Path] = []
         if run_cards:
-            all_page_paths = [p for vol in sorted(page_paths_by_vol) for p in page_paths_by_vol[vol]]
+            all_page_paths = [
+                p for vol in sorted(page_paths_by_vol) for p in page_paths_by_vol[vol]
+                if p.exists()
+            ]
             with tqdm(all_page_paths, unit="page") as bar:
                 for page_path in bar:
-                    if not page_path.exists():
-                        continue
                     bar.desc = f"Cards {page_path.stem}"
                     debug_dir = debug_base / page_path.stem if debug_base else None
                     card_paths.extend(extract_cards_from_page(
@@ -77,6 +87,9 @@ def main() -> None:
                             config.extracted_cards_dir.glob(f"{volume}_{idx:04d}_*.png")
                         ))
                 card_paths = card_paths[: selection.num_cards]
+
+            if not args.force:
+                card_paths = [p for p in card_paths if not (config.ocr_output_dir / f"{p.stem}.txt").exists()]
 
             with tqdm(card_paths, unit="card") as bar:
                 for card_path in bar:
@@ -101,6 +114,8 @@ def main() -> None:
 
         if run_ocr:
             card_images = sorted(config.extracted_cards_dir.glob("*.png"))
+            if not args.force:
+                card_images = [p for p in card_images if not (config.ocr_output_dir / f"{p.stem}.txt").exists()]
             with tqdm(card_images, unit="card") as bar:
                 for card_path in bar:
                     bar.desc = f"OCR {card_path.stem}"
