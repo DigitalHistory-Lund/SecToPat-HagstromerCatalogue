@@ -4,6 +4,8 @@ import argparse
 import tempfile
 from pathlib import Path
 
+from tqdm import tqdm
+
 from .config import load_config
 from .extract_cards import extract_cards_from_page
 from .extract_pages import extract_pages_from_pdf
@@ -31,37 +33,44 @@ def main() -> None:
 
     if not args.all:
         selection = select_subset(config)
-        print(f"Subset: {selection.volumes} (max {selection.num_cards} cards/page)")
 
-        card_paths: list[Path] = []
-        for volume, page_indices in selection.volumes.items():
-            pdf_path = config.raw_cat_path / f"{volume}.pdf"
-
-            if run_pages:
-                print(f"Extracting pages from {pdf_path.name}...")
-                page_paths = extract_pages_from_pdf(pdf_path, config, force=args.force, page_indices=page_indices)
-            else:
-                # Build expected page paths for card extraction
-                page_paths = [
+        # --- Pages ---
+        page_paths_by_vol: dict[str, list[Path]] = {}
+        if run_pages:
+            total = sum(len(pi) for pi in selection.volumes.values())
+            with tqdm(total=total, unit="page") as bar:
+                for volume in sorted(selection.volumes):
+                    page_indices = selection.volumes[volume]
+                    pdf_path = config.raw_cat_path / f"{volume}.pdf"
+                    bar.desc = f"Pages {volume}"
+                    paths = extract_pages_from_pdf(pdf_path, config, force=args.force, page_indices=page_indices)
+                    page_paths_by_vol[volume] = paths
+                    bar.update(len(page_indices))
+        else:
+            for volume, page_indices in selection.volumes.items():
+                page_paths_by_vol[volume] = [
                     config.extracted_images_dir / f"{volume}_{idx:04d}.png"
                     for idx in page_indices
                 ]
 
-            if run_cards:
-                for page_path in page_paths:
+        # --- Cards ---
+        card_paths: list[Path] = []
+        if run_cards:
+            all_page_paths = [p for vol in sorted(page_paths_by_vol) for p in page_paths_by_vol[vol]]
+            with tqdm(all_page_paths, unit="page") as bar:
+                for page_path in bar:
                     if not page_path.exists():
-                        print(f"  Skipping {page_path.name} (not found)")
                         continue
-                    print(f"Extracting cards from {page_path.name}...")
+                    bar.desc = f"Cards {page_path.stem}"
                     debug_dir = debug_base / page_path.stem if debug_base else None
                     card_paths.extend(extract_cards_from_page(
                         page_path, config, force=args.force,
                         max_cards=selection.num_cards, debug_dir=debug_dir,
                     ))
 
+        # --- OCR ---
         if run_ocr:
             if not card_paths:
-                # Discover existing card images for the subset
                 for volume, page_indices in selection.volumes.items():
                     for idx in page_indices:
                         card_paths.extend(sorted(
@@ -69,33 +78,33 @@ def main() -> None:
                         ))
                 card_paths = card_paths[: selection.num_cards]
 
-            for card_path in card_paths:
-                print(f"OCR {card_path.name}...")
-                ocr_card(card_path, config, force=args.force)
+            with tqdm(card_paths, unit="card") as bar:
+                for card_path in bar:
+                    bar.desc = f"OCR {card_path.stem}"
+                    ocr_card(card_path, config, force=args.force)
     else:
         pdf_files = sorted(config.raw_cat_path.glob("*.pdf"))
 
-        for pdf_path in pdf_files:
-            volume = pdf_path.stem
+        if run_pages:
+            with tqdm(pdf_files, unit="vol") as bar:
+                for pdf_path in bar:
+                    bar.desc = f"Pages {pdf_path.stem}"
+                    extract_pages_from_pdf(pdf_path, config, force=args.force)
 
-            if run_pages:
-                print(f"Extracting pages from {pdf_path.name}...")
-                extract_pages_from_pdf(pdf_path, config, force=args.force)
-
-            if run_cards:
-                page_images = sorted(config.extracted_images_dir.glob(f"{volume}_*.png"))
-                for page_path in page_images:
-                    print(f"Extracting cards from {page_path.name}...")
+        if run_cards:
+            page_images = sorted(config.extracted_images_dir.glob("*.png"))
+            with tqdm(page_images, unit="page") as bar:
+                for page_path in bar:
+                    bar.desc = f"Cards {page_path.stem}"
                     debug_dir = debug_base / page_path.stem if debug_base else None
                     extract_cards_from_page(page_path, config, force=args.force, debug_dir=debug_dir)
 
-            if run_ocr:
-                card_images = sorted(config.extracted_cards_dir.glob(f"{volume}_*.png"))
-                for card_path in card_images:
-                    print(f"OCR {card_path.name}...")
+        if run_ocr:
+            card_images = sorted(config.extracted_cards_dir.glob("*.png"))
+            with tqdm(card_images, unit="card") as bar:
+                for card_path in bar:
+                    bar.desc = f"OCR {card_path.stem}"
                     ocr_card(card_path, config, force=args.force)
-
-    print("Done.")
 
 
 if __name__ == "__main__":

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import fitz
 
+from tqdm import tqdm
+
 from .config import Config, load_config
 
 
@@ -36,7 +38,6 @@ def extract_pages_from_pdf(
         page = doc.load_page(page_idx)
         pix = page.get_pixmap()
         pix.save(str(out_path))
-        print(f"  {out_name}")
         output_paths.append(out_path)
 
     doc.close()
@@ -51,9 +52,10 @@ def main() -> None:
     config = load_config()
     pdf_files = sorted(config.raw_cat_path.glob("*.pdf"))
 
-    for pdf_path in pdf_files:
-        print(f"Processing {pdf_path.name}...")
-        extract_pages_from_pdf(pdf_path, config, force=args.force)
+    with tqdm(pdf_files, unit="vol") as bar:
+        for pdf_path in bar:
+            bar.desc = f"Pages {pdf_path.stem}"
+            extract_pages_from_pdf(pdf_path, config, force=args.force)
 
 
 if __name__ == "__main__":

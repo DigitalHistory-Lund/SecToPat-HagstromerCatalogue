@@ -5,6 +5,8 @@ from pathlib import Path
 
 import ollama
 
+from tqdm import tqdm
+
 from .config import Config, load_config
 
 
@@ -33,7 +35,6 @@ def ocr_card(card_path: Path, config: Config, force: bool = False) -> Path:
 
     text = response.message.content
     out_path.write_text(text, encoding="utf-8")
-    print(f"  {out_path.name}")
     return out_path
 
 
@@ -49,9 +50,10 @@ def main() -> None:
         print("No card images found. Run extract_cards first.")
         return
 
-    for card_path in card_images:
-        print(f"OCR {card_path.name}...")
-        ocr_card(card_path, config, force=args.force)
+    with tqdm(card_images, unit="card") as bar:
+        for card_path in bar:
+            bar.desc = f"OCR {card_path.stem}"
+            ocr_card(card_path, config, force=args.force)
 
 
 if __name__ == "__main__":

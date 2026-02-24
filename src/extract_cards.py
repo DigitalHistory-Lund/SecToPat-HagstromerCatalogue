@@ -7,6 +7,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from tqdm import tqdm
+
 from .config import Config, load_config
 
 
@@ -199,7 +201,6 @@ def extract_cards_from_page(
 
         card_img = img[y : y + ch, x : x + cw]
         cv2.imwrite(str(out_path), card_img)
-        print(f"  {out_name}")
         output_paths.append(out_path)
 
     return output_paths
@@ -223,10 +224,11 @@ def main() -> None:
         debug_base = Path(tempfile.mkdtemp(prefix="card_debug_"))
         print(f"Debug images will be saved to: {debug_base}")
 
-    for page_path in page_images:
-        print(f"Processing {page_path.name}...")
-        debug_dir = debug_base / page_path.stem if debug_base else None
-        extract_cards_from_page(page_path, config, force=args.force, debug_dir=debug_dir)
+    with tqdm(page_images, unit="page") as bar:
+        for page_path in bar:
+            bar.desc = f"Cards {page_path.stem}"
+            debug_dir = debug_base / page_path.stem if debug_base else None
+            extract_cards_from_page(page_path, config, force=args.force, debug_dir=debug_dir)
 
 
 if __name__ == "__main__":
