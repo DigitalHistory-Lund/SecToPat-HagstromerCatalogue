@@ -227,6 +227,17 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
             link_rect = fitz.Rect(url_start.x, url_rect.y0, url_rect.x1, url_rect.y1)
             pdf_page.insert_link({"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url})
 
+        # --- Page number (bottom-right) ---
+        page_number = page_idx // CARDS_PER_PAGE + 1
+        page_num_text = f"Page {page_number}"
+        pnum_width = font.text_length(page_num_text, fontsize=7)
+        tw_pnum = fitz.TextWriter(pdf_page.rect)
+        tw_pnum.append(
+            fitz.Point(PAGE_W - MARGIN - pnum_width, PAGE_H - 10),
+            page_num_text, font=font, fontsize=7,
+        )
+        tw_pnum.write_text(pdf_page, color=(0.5, 0.5, 0.5))
+
     output_path = os.path.join(base, output)
     doc.save(output_path, deflate=True, garbage=4)
     doc.close()
