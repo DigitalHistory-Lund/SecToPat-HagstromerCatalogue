@@ -7,9 +7,9 @@ by filename so that the left column of the original page comes first
 (page 1), followed by the right column (page 2).
 
 Usage:
-    python generate_card_pdf.py <volume> [page]
-    python generate_card_pdf.py 01          # all discovered pages
-    python generate_card_pdf.py 01 0009     # single page
+    python generate_card_pdf.py                 # all volumes
+    python generate_card_pdf.py 01              # single volume, all pages
+    python generate_card_pdf.py 01 0009         # single volume, single page
 """
 
 import glob
@@ -40,6 +40,18 @@ FONT_SIZE = 9
 # Image target width in pixels (for downscaling before embedding)
 IMG_TARGET_W = 800
 IMG_JPEG_QUALITY = 85
+
+
+def discover_volumes(base: str) -> list[str]:
+    """Discover available volume numbers from extracted cards."""
+    pattern = os.path.join(base, CARDS_DIR, "*.png")
+    volumes = set()
+    for path in glob.glob(pattern):
+        stem = os.path.splitext(os.path.basename(path))[0]
+        parts = stem.split("_")
+        if len(parts) >= 2:
+            volumes.add(parts[0])
+    return sorted(volumes)
 
 
 def discover_pages(volume: str, base: str) -> list[str]:
@@ -90,13 +102,9 @@ def downscale_to_jpeg(path: str) -> tuple[bytes, float]:
     return bytes(buf), aspect
 
 
-def build_pdf(volume: str, pages: list[str], base: str, output: str) -> None:
-    card_paths = []
-    for page in pages:
-        card_paths.extend(find_cards(volume, page, base))
-
+def build_pdf(card_paths: list[str], base: str, output: str) -> None:
     if not card_paths:
-        sys.exit(f"No cards found for volume {volume}, pages {pages}")
+        sys.exit("No cards found")
 
     doc = fitz.open()
 
@@ -124,10 +132,11 @@ def build_pdf(volume: str, pages: list[str], base: str, output: str) -> None:
         # --- Page header: "XX.pdf ; page Y ; left|right column" ---
         first_stem = os.path.splitext(os.path.basename(batch[0]))[0]
         parts = first_stem.split("_")
+        vol_num = parts[0]
         page_num = parts[1]
         col_num = parts[2]
         col_label = "left" if col_num == "0" else "right"
-        header_text = f"{volume}.pdf ; page {page_num} ; {col_label} column"
+        header_text = f"{vol_num}.pdf ; page {page_num} ; {col_label} column"
         header_width = font.text_length(header_text, fontsize=7)
         tw_header = fitz.TextWriter(pdf_page.rect)
         tw_header.append(
@@ -226,20 +235,36 @@ def build_pdf(volume: str, pages: list[str], base: str, output: str) -> None:
 
 
 if __name__ == "__main__":
-    volume = sys.argv[1] if len(sys.argv) > 1 else "01"
     base = os.path.dirname(os.path.abspath(__file__))
 
     if len(sys.argv) > 2:
-        # Single page mode
-        page = sys.argv[2]
+        # Single volume + single page
+        volume, page = sys.argv[1], sys.argv[2]
+        card_paths = find_cards(volume, page, base)
         output = f"{volume}_{page}_cards.pdf"
-        pages = [page]
-    else:
-        # Multi-page mode: discover available pages
+    elif len(sys.argv) > 1:
+        # Single volume, all pages
+        volume = sys.argv[1]
         pages = discover_pages(volume, base)
         if not pages:
             sys.exit(f"No pages found for volume {volume}")
-        print(f"Discovered {len(pages)} pages for volume {volume}: {pages[0]}–{pages[-1]}")
+        print(f"Volume {volume}: {len(pages)} pages ({pages[0]}–{pages[-1]})")
+        card_paths = []
+        for p in pages:
+            card_paths.extend(find_cards(volume, p, base))
         output = f"{volume}_cards.pdf"
+    else:
+        # All volumes
+        volumes = discover_volumes(base)
+        if not volumes:
+            sys.exit("No volumes found")
+        card_paths = []
+        for volume in volumes:
+            pages = discover_pages(volume, base)
+            if pages:
+                print(f"Volume {volume}: {len(pages)} pages ({pages[0]}–{pages[-1]})")
+                for p in pages:
+                    card_paths.extend(find_cards(volume, p, base))
+        output = "all_cards.pdf"
 
-    build_pdf(volume, pages, base, output)
+    build_pdf(card_paths, base, output)
