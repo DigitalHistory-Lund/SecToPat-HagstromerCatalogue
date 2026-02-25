@@ -4,6 +4,9 @@
 
 extracted_cards/
 extracted_images/
+ocr_output/
+reader/
+searchable_pdfs/
 __pycache__/
 
 *.pdf

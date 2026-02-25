@@ -1,0 +1,20 @@
+[project]
+name = "catalogue-hagstrom"
+version = "0.1.0"
+description = "Extraction pipeline for the Hagstrom manuscript catalogue"
+requires-python = ">=3.12"
+dependencies = [
+    "opencv-python==4.13.0.92",
+    "PyMuPDF==1.27.1",
+    "ollama==0.6.1",
+    "python-dotenv==1.2.1",
+    "tqdm==4.67.3",
+    "numpy==2.4.2",
+]
+
+[project.scripts]
+catalogue-hagstrom = "src.__main__:main"
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
