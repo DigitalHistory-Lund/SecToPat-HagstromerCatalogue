@@ -20,7 +20,7 @@ def generate_reader() -> None:
     reader_dir = cfg.reader_dir
 
     # Collect qualifying card stems (those with an OCR .txt file)
-    txt_files = sorted(cfg.ocr_output_dir.glob("*.txt"))
+    txt_files = sorted(cfg.transcriptions_dir.glob("*.txt"))
     if not txt_files:
         print("No OCR text files found — nothing to generate.")
         return
@@ -68,7 +68,7 @@ def generate_reader() -> None:
                 cards = sorted(pages[page])
                 page_lines: list[str] = []
                 for col, row, stem in cards:
-                    ocr_text = (cfg.ocr_output_dir / f"{stem}.txt").read_text().rstrip()
+                    ocr_text = (cfg.transcriptions_dir / f"{stem}.txt").read_text().rstrip()
                     img_src = f"{cards_rel}/{stem}.png"
                     ocr_html = ocr_text.replace("&", "&amp;").replace("<", "&lt;")
                     page_lines.append("<table><tr>")

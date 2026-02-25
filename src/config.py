@@ -15,6 +15,7 @@ class Config:
     extracted_images_dir: Path
     extracted_cards_dir: Path
     ocr_output_dir: Path
+    transcriptions_dir: Path
     reader_dir: Path
     ocr_model: str
     seed: int
@@ -56,6 +57,7 @@ def load_config() -> Config:
         extracted_images_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_IMAGES_DIR", "extracted_images"),
         extracted_cards_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_CARDS_DIR", "extracted_cards"),
         ocr_output_dir=PROJECT_ROOT / os.environ.get("OCR_OUTPUT_DIR", "ocr_output"),
+        transcriptions_dir=PROJECT_ROOT / os.environ.get("TRANSCRIPTIONS_DIR", "transcriptions"),
         reader_dir=PROJECT_ROOT / os.environ.get("READER_DIR", "reader"),
         ocr_model=os.environ.get("OCR_MODEL", "qwen3-vl:2b"),
         seed=int(os.environ.get("SEED", "1")),

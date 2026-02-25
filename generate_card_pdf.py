@@ -23,7 +23,7 @@ import fitz  # PyMuPDF
 # Configuration
 # ---------------------------------------------------------------------------
 CARDS_DIR = "extracted_cards"
-OCR_DIR = "ocr_output"
+OCR_DIR = "transcriptions"
 CARDS_PER_PAGE = 4
 MARGIN = 28
 GAP = 14  # horizontal gap between image and text
