@@ -7,8 +7,9 @@ by filename so that the left column of the original page comes first
 (page 1), followed by the right column (page 2).
 
 Usage:
-    python generate_card_pdf.py [volume] [page]
-    python generate_card_pdf.py 01 0009
+    python generate_card_pdf.py <volume> [page]
+    python generate_card_pdf.py 01          # all discovered pages
+    python generate_card_pdf.py 01 0009     # single page
 """
 
 import glob
@@ -41,12 +42,25 @@ IMG_TARGET_W = 800
 IMG_JPEG_QUALITY = 85
 
 
+def discover_pages(volume: str, base: str) -> list[str]:
+    """Discover available page numbers for a volume from extracted cards."""
+    pattern = os.path.join(base, CARDS_DIR, f"{volume}_*_*.png")
+    pages = set()
+    for path in glob.glob(pattern):
+        # filename: {volume}_{page}_{col}_{row}.png
+        stem = os.path.splitext(os.path.basename(path))[0]
+        parts = stem.split("_")
+        if len(parts) >= 2:
+            pages.add(parts[1])
+    return sorted(pages)
+
+
 def find_cards(volume: str, page: str, base: str) -> list[str]:
     """Return sorted list of card image paths for a given volume/page."""
     pattern = os.path.join(base, CARDS_DIR, f"{volume}_{page}_*.png")
     paths = sorted(glob.glob(pattern))
     if not paths:
-        sys.exit(f"No cards found matching {pattern}")
+        print(f"Warning: no cards found matching {pattern}")
     return paths
 
 
@@ -76,8 +90,13 @@ def downscale_to_jpeg(path: str) -> tuple[bytes, float]:
     return bytes(buf), aspect
 
 
-def build_pdf(volume: str, page: str, base: str, output: str) -> None:
-    card_paths = find_cards(volume, page, base)
+def build_pdf(volume: str, pages: list[str], base: str, output: str) -> None:
+    card_paths = []
+    for page in pages:
+        card_paths.extend(find_cards(volume, page, base))
+
+    if not card_paths:
+        sys.exit(f"No cards found for volume {volume}, pages {pages}")
 
     doc = fitz.open()
 
@@ -104,9 +123,11 @@ def build_pdf(volume: str, page: str, base: str, output: str) -> None:
 
         # --- Page header: "XX.pdf ; page Y ; left|right column" ---
         first_stem = os.path.splitext(os.path.basename(batch[0]))[0]
-        col_num = first_stem.split("_")[2]
+        parts = first_stem.split("_")
+        page_num = parts[1]
+        col_num = parts[2]
         col_label = "left" if col_num == "0" else "right"
-        header_text = f"{volume}.pdf ; page {page} ; {col_label} column"
+        header_text = f"{volume}.pdf ; page {page_num} ; {col_label} column"
         header_width = font.text_length(header_text, fontsize=7)
         tw_header = fitz.TextWriter(pdf_page.rect)
         tw_header.append(
@@ -206,9 +227,19 @@ def build_pdf(volume: str, page: str, base: str, output: str) -> None:
 
 if __name__ == "__main__":
     volume = sys.argv[1] if len(sys.argv) > 1 else "01"
-    page = sys.argv[2] if len(sys.argv) > 2 else "0009"
-
     base = os.path.dirname(os.path.abspath(__file__))
-    output = f"{volume}_{page}_cards.pdf"
 
-    build_pdf(volume, page, base, output)
+    if len(sys.argv) > 2:
+        # Single page mode
+        page = sys.argv[2]
+        output = f"{volume}_{page}_cards.pdf"
+        pages = [page]
+    else:
+        # Multi-page mode: discover available pages
+        pages = discover_pages(volume, base)
+        if not pages:
+            sys.exit(f"No pages found for volume {volume}")
+        print(f"Discovered {len(pages)} pages for volume {volume}: {pages[0]}–{pages[-1]}")
+        output = f"{volume}_cards.pdf"
+
+    build_pdf(volume, pages, base, output)
