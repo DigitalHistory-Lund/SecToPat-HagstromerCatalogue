@@ -7,7 +7,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from src.config import load_config
+from .config import load_config
 
 def parse_stem(stem: str) -> tuple[str, str, str, str]:
     """Parse a card stem like '05_0001_0_2' into (vol, page, col, row)."""

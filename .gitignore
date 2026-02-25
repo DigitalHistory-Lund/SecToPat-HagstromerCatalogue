@@ -1,6 +1,9 @@
 .venv/
 .env
+.DS_Store
 
 extracted_cards/
 extracted_images/
 __pycache__/
+
+*.pdf

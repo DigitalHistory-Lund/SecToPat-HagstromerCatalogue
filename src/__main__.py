@@ -1,6 +1,7 @@
 """CLI orchestrator for the catalogue card extraction pipeline."""
 
 import argparse
+import sys
 import tempfile
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -13,16 +14,29 @@ from .extract_cards import extract_cards_from_page
 from .extract_pages import extract_pages_from_pdf
 from .ocr_cards import ocr_card
 from .subset import select_subset
+from .check_images import main as check_images_main
+from .generate_card_pdf import main as generate_card_pdf_main
+from .generate_reader import generate_reader
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Hagstrom catalogue extraction pipeline")
     parser.add_argument("--force", action="store_true", help="Overwrite existing outputs")
     parser.add_argument("--all", action="store_true", help="Process all volumes instead of the seeded subset")
-    parser.add_argument("--step", choices=["pages", "cards", "ocr"], help="Run a single step")
+    parser.add_argument("--step", choices=["pages", "cards", "ocr", "check-images", "card-pdf", "reader"], help="Run a single step")
     parser.add_argument("--debug", action="store_true", help="Save intermediate card-detection images")
     parser.add_argument("--workers", type=int, default=1, help="CPU workers for pages/cards (default: 1)")
     args = parser.parse_args()
+
+    # Dispatch standalone steps that are not part of the default pipeline
+    if args.step == "check-images":
+        sys.exit(check_images_main())
+    if args.step == "card-pdf":
+        generate_card_pdf_main()
+        return
+    if args.step == "reader":
+        generate_reader()
+        return
 
     config = load_config()
     run_pages = args.step in (None, "pages")

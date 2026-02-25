@@ -7,9 +7,9 @@ cards packed greedily onto pages. Cards are ordered by filename so that
 the left column of the original page comes first, followed by the right.
 
 Usage:
-    python generate_card_pdf.py                 # all volumes
-    python generate_card_pdf.py 01              # single volume, all pages
-    python generate_card_pdf.py 01 0009         # single volume, single page
+    python -m src.generate_card_pdf                 # all volumes
+    python -m src.generate_card_pdf 01              # single volume, all pages
+    python -m src.generate_card_pdf 01 0009         # single volume, single page
 """
 
 import glob
@@ -21,11 +21,11 @@ from collections import OrderedDict
 import cv2
 import fitz  # PyMuPDF
 
+from .config import load_config
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-CARDS_DIR = "extracted_cards"
-OCR_DIR = "transcriptions"
 MARGIN = 28
 GAP = 14  # horizontal gap between image and text
 ROW_GAP = 12  # vertical gap between card rows
@@ -42,9 +42,9 @@ IMG_TARGET_W = 800
 IMG_JPEG_QUALITY = 85
 
 
-def discover_volumes(base: str) -> list[str]:
+def discover_volumes(cards_dir: str) -> list[str]:
     """Discover available volume numbers from extracted cards."""
-    pattern = os.path.join(base, CARDS_DIR, "*.png")
+    pattern = os.path.join(cards_dir, "*.png")
     volumes = set()
     for path in glob.glob(pattern):
         stem = os.path.splitext(os.path.basename(path))[0]
@@ -54,9 +54,9 @@ def discover_volumes(base: str) -> list[str]:
     return sorted(volumes)
 
 
-def discover_pages(volume: str, base: str) -> list[str]:
+def discover_pages(volume: str, cards_dir: str) -> list[str]:
     """Discover available page numbers for a volume from extracted cards."""
-    pattern = os.path.join(base, CARDS_DIR, f"{volume}_*_*.png")
+    pattern = os.path.join(cards_dir, f"{volume}_*_*.png")
     pages = set()
     for path in glob.glob(pattern):
         # filename: {volume}_{page}_{col}_{row}.png
@@ -67,18 +67,18 @@ def discover_pages(volume: str, base: str) -> list[str]:
     return sorted(pages)
 
 
-def find_cards(volume: str, page: str, base: str) -> list[str]:
+def find_cards(volume: str, page: str, cards_dir: str) -> list[str]:
     """Return sorted list of card image paths for a given volume/page."""
-    pattern = os.path.join(base, CARDS_DIR, f"{volume}_{page}_*.png")
+    pattern = os.path.join(cards_dir, f"{volume}_{page}_*.png")
     paths = sorted(glob.glob(pattern))
     if not paths:
         print(f"Warning: no cards found matching {pattern}")
     return paths
 
 
-def read_ocr(stem: str, base: str) -> str:
+def read_ocr(stem: str, ocr_dir: str) -> str:
     """Read the OCR text file for a card, return empty string if missing."""
-    txt_path = os.path.join(base, OCR_DIR, f"{stem}.txt")
+    txt_path = os.path.join(ocr_dir, f"{stem}.txt")
     if os.path.exists(txt_path):
         with open(txt_path, "r", encoding="utf-8") as f:
             return f.read().strip()
@@ -102,7 +102,7 @@ def downscale_to_jpeg(path: str) -> tuple[bytes, float]:
     return bytes(buf), aspect
 
 
-def build_pdf(card_paths: list[str], base: str, output: str) -> None:
+def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
     if not card_paths:
         sys.exit("No cards found")
 
@@ -132,7 +132,7 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
         stem = os.path.splitext(os.path.basename(card_path))[0]
         parts = stem.split("_")
         col_key = f"{parts[0]}_{parts[1]}_{parts[2]}"
-        ocr_text = read_ocr(stem, base)
+        ocr_text = read_ocr(stem, ocr_dir)
         num_lines = max(ocr_text.count("\n") + 1, 1)
         text_h = num_lines * FONT_SIZE * 1.2 + ROW_OVERHEAD
         min_h = max(text_h, MIN_ROW_H)
@@ -265,43 +265,49 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
         )
         tw_pnum.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
-    output_path = os.path.join(base, output)
-    doc.save(output_path, deflate=True, garbage=4)
+    doc.save(output, deflate=True, garbage=4)
     doc.close()
-    print(f"Saved {output_path} ({len(card_paths)} cards, {len(page_batches)} pages)")
+    print(f"Saved {output} ({len(card_paths)} cards, {len(page_batches)} pages)")
 
 
-if __name__ == "__main__":
-    base = os.path.dirname(os.path.abspath(__file__))
+def main() -> None:
+    """Entry point for CLI and __main__.py dispatch."""
+    cfg = load_config()
+    cards_dir = str(cfg.extracted_cards_dir)
+    ocr_dir = str(cfg.transcriptions_dir)
 
     if len(sys.argv) > 2:
         # Single volume + single page
         volume, page = sys.argv[1], sys.argv[2]
-        card_paths = find_cards(volume, page, base)
+        card_paths = find_cards(volume, page, cards_dir)
         output = f"{volume}_{page}_cards.pdf"
     elif len(sys.argv) > 1:
         # Single volume, all pages
         volume = sys.argv[1]
-        pages = discover_pages(volume, base)
+        pages = discover_pages(volume, cards_dir)
         if not pages:
             sys.exit(f"No pages found for volume {volume}")
         print(f"Volume {volume}: {len(pages)} pages ({pages[0]}–{pages[-1]})")
         card_paths = []
         for p in pages:
-            card_paths.extend(find_cards(volume, p, base))
+            card_paths.extend(find_cards(volume, p, cards_dir))
         output = f"{volume}_cards.pdf"
     else:
         # All volumes
-        volumes = discover_volumes(base)
+        volumes = discover_volumes(cards_dir)
         if not volumes:
             sys.exit("No volumes found")
         card_paths = []
         for volume in volumes:
-            pages = discover_pages(volume, base)
+            pages = discover_pages(volume, cards_dir)
             if pages:
                 print(f"Volume {volume}: {len(pages)} pages ({pages[0]}–{pages[-1]})")
                 for p in pages:
-                    card_paths.extend(find_cards(volume, p, base))
+                    card_paths.extend(find_cards(volume, p, cards_dir))
         output = "all_cards.pdf"
 
-    build_pdf(card_paths, base, output)
+    build_pdf(card_paths, ocr_dir, output)
+
+
+if __name__ == "__main__":
+    main()
