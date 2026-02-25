@@ -96,9 +96,24 @@ def build_pdf(volume: str, page: str, base: str, output: str) -> None:
 
     row_h = (usable_h - (CARDS_PER_PAGE - 1) * ROW_GAP) / CARDS_PER_PAGE
 
+    header_h = 14  # space reserved for page header
+
     for page_idx in range(0, len(card_paths), CARDS_PER_PAGE):
         batch = card_paths[page_idx : page_idx + CARDS_PER_PAGE]
         pdf_page = doc.new_page(width=PAGE_W, height=PAGE_H)
+
+        # --- Page header: "XX.pdf ; page Y ; left|right column" ---
+        first_stem = os.path.splitext(os.path.basename(batch[0]))[0]
+        col_num = first_stem.split("_")[2]
+        col_label = "left" if col_num == "0" else "right"
+        header_text = f"{volume}.pdf ; page {page} ; {col_label} column"
+        header_width = font.text_length(header_text, fontsize=7)
+        tw_header = fitz.TextWriter(pdf_page.rect)
+        tw_header.append(
+            fitz.Point((PAGE_W - header_width) / 2, MARGIN - 4),
+            header_text, font=font, fontsize=7,
+        )
+        tw_header.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
         for row_idx, card_path in enumerate(batch):
             stem = os.path.splitext(os.path.basename(card_path))[0]
