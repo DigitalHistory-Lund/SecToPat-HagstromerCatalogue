@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Generate a PDF showing extracted cards with their OCR text side by side.
 
-Layout: 4 cards per page. Each row has the card image on the left and
-the extracted text on the right in a monospaced font. Cards are ordered
-by filename so that the left column of the original page comes first
-(page 1), followed by the right column (page 2).
+Layout: Each row has the card image on the left and the extracted text on
+the right in a monospaced font. Row heights adapt to text length, with
+cards packed greedily onto pages. Cards are ordered by filename so that
+the left column of the original page comes first, followed by the right.
 
 Usage:
     python generate_card_pdf.py                 # all volumes
@@ -16,6 +16,7 @@ import glob
 import io
 import os
 import sys
+from collections import OrderedDict
 
 import cv2
 import fitz  # PyMuPDF
@@ -25,7 +26,6 @@ import fitz  # PyMuPDF
 # ---------------------------------------------------------------------------
 CARDS_DIR = "extracted_cards"
 OCR_DIR = "transcriptions"
-CARDS_PER_PAGE = 4
 MARGIN = 28
 GAP = 14  # horizontal gap between image and text
 ROW_GAP = 12  # vertical gap between card rows
@@ -121,20 +121,57 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
     img_col_w = (usable_w - GAP) * 0.48
     txt_col_w = (usable_w - GAP) * 0.52
 
-    row_h = (usable_h - (CARDS_PER_PAGE - 1) * ROW_GAP) / CARDS_PER_PAGE
+    # Row overhead: 18pt top (label) + 12pt bottom (link area)
+    ROW_OVERHEAD = 30
+    MIN_ROW_H = 80  # minimum height for any card row
 
-    header_h = 14  # space reserved for page header
+    # --- Pre-compute text requirements, grouped by source column ---
+    # Group key: "{vol}_{page}_{col}" — cards from the same original column
+    column_groups: OrderedDict[str, list[tuple]] = OrderedDict()
+    for card_path in card_paths:
+        stem = os.path.splitext(os.path.basename(card_path))[0]
+        parts = stem.split("_")
+        col_key = f"{parts[0]}_{parts[1]}_{parts[2]}"
+        ocr_text = read_ocr(stem, base)
+        num_lines = max(ocr_text.count("\n") + 1, 1)
+        text_h = num_lines * FONT_SIZE * 1.2 + ROW_OVERHEAD
+        min_h = max(text_h, MIN_ROW_H)
+        column_groups.setdefault(col_key, []).append(
+            (card_path, stem, ocr_text, min_h)
+        )
 
-    for page_idx in range(0, len(card_paths), CARDS_PER_PAGE):
-        batch = card_paths[page_idx : page_idx + CARDS_PER_PAGE]
+    # --- Pack each column group into its own page(s) ---
+    page_batches: list[list[tuple]] = []
+    for col_key, cards in column_groups.items():
+        current: list[tuple] = []
+        current_h = 0.0
+        for info in cards:
+            needed = info[3]
+            gap = ROW_GAP if current else 0
+            if current and current_h + gap + needed > usable_h:
+                page_batches.append(current)
+                current = []
+                current_h = 0.0
+                gap = 0
+            current.append(info)
+            current_h += gap + needed
+        if current:
+            page_batches.append(current)
+
+    # --- Render each page ---
+    for page_num_idx, batch in enumerate(page_batches):
         pdf_page = doc.new_page(width=PAGE_W, height=PAGE_H)
 
-        # --- Page header: "XX.pdf ; page Y ; left|right column" ---
-        first_stem = os.path.splitext(os.path.basename(batch[0]))[0]
+        # Distribute extra vertical space proportionally among rows
+        total_min_h = sum(info[3] for info in batch)
+        total_gaps = max(len(batch) - 1, 0) * ROW_GAP
+        scale = (usable_h - total_gaps) / total_min_h if total_min_h > 0 else 1.0
+        scale = max(scale, 1.0)  # never shrink below requested minimum
+
+        # --- Page header ---
+        first_stem = batch[0][1]
         parts = first_stem.split("_")
-        vol_num = parts[0]
-        page_num = parts[1]
-        col_num = parts[2]
+        vol_num, page_num, col_num = parts[0], parts[1], parts[2]
         col_label = "left" if col_num == "0" else "right"
         header_text = f"{vol_num}.pdf ; page {page_num} ; {col_label} column"
         header_width = font.text_length(header_text, fontsize=7)
@@ -145,16 +182,13 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
         )
         tw_header.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
-        for row_idx, card_path in enumerate(batch):
-            stem = os.path.splitext(os.path.basename(card_path))[0]
-            ocr_text = read_ocr(stem, base)
-
-            y_top = MARGIN + row_idx * (row_h + ROW_GAP)
-            y_bottom = y_top + row_h
+        y_cursor = float(MARGIN)
+        for row_idx, (card_path, stem, ocr_text, min_h) in enumerate(batch):
+            row_h = min_h * scale
 
             # --- Separator line between rows ---
             if row_idx > 0:
-                sep_y = y_top - ROW_GAP / 2
+                sep_y = y_cursor - ROW_GAP / 2
                 shape = pdf_page.new_shape()
                 shape.draw_line(
                     fitz.Point(MARGIN, sep_y),
@@ -163,17 +197,18 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
                 shape.finish(color=(0.75, 0.75, 0.75), width=0.5)
                 shape.commit()
 
+            y_top = y_cursor
+            y_bottom = y_top + row_h
+
             # --- Insert card image (downscaled) ---
             jpeg_bytes, aspect = downscale_to_jpeg(card_path)
 
-            # Fit within the image column preserving aspect ratio
             fit_w = img_col_w
             fit_h = fit_w / aspect
             if fit_h > row_h:
                 fit_h = row_h
                 fit_w = fit_h * aspect
 
-            # Center vertically
             y_offset = (row_h - fit_h) / 2
             img_place = fitz.Rect(
                 MARGIN,
@@ -193,7 +228,7 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
 
             # OCR text
             ocr_rect = fitz.Rect(txt_x, y_top + 18, txt_x + txt_col_w, y_bottom - 12)
-            rc = pdf_page.insert_textbox(
+            pdf_page.insert_textbox(
                 ocr_rect,
                 ocr_text,
                 fontname="F0",
@@ -201,15 +236,6 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
                 fontsize=FONT_SIZE,
                 align=fitz.TEXT_ALIGN_LEFT,
             )
-            if rc < 0:
-                pdf_page.insert_textbox(
-                    ocr_rect,
-                    ocr_text,
-                    fontname="F0",
-                    fontfile=FONT_PATH if os.path.exists(FONT_PATH) else None,
-                    fontsize=FONT_SIZE - 1,
-                    align=fitz.TEXT_ALIGN_LEFT,
-                )
 
             # GitHub edit link (small, grey, clickable) at bottom of row
             edit_url = f"https://github.com/DigitalHistory-Lund/SecToPat-CatCards/edit/main/transcriptions/{stem}.txt"
@@ -227,9 +253,10 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
             link_rect = fitz.Rect(url_start.x, url_rect.y0, url_rect.x1, url_rect.y1)
             pdf_page.insert_link({"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url})
 
+            y_cursor = y_bottom + ROW_GAP
+
         # --- Page number (bottom-right) ---
-        page_number = page_idx // CARDS_PER_PAGE + 1
-        page_num_text = f"Page {page_number}"
+        page_num_text = f"Page {page_num_idx + 1}"
         pnum_width = font.text_length(page_num_text, fontsize=7)
         tw_pnum = fitz.TextWriter(pdf_page.rect)
         tw_pnum.append(
@@ -241,8 +268,7 @@ def build_pdf(card_paths: list[str], base: str, output: str) -> None:
     output_path = os.path.join(base, output)
     doc.save(output_path, deflate=True, garbage=4)
     doc.close()
-    print(f"Saved {output_path} ({len(card_paths)} cards, "
-          f"{(len(card_paths) + CARDS_PER_PAGE - 1) // CARDS_PER_PAGE} pages)")
+    print(f"Saved {output_path} ({len(card_paths)} cards, {len(page_batches)} pages)")
 
 
 if __name__ == "__main__":
