@@ -147,7 +147,7 @@ def build_pdf(volume: str, page: str, base: str, output: str) -> None:
             tw_label.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
             # OCR text
-            ocr_rect = fitz.Rect(txt_x, y_top + 18, txt_x + txt_col_w, y_bottom - 4)
+            ocr_rect = fitz.Rect(txt_x, y_top + 18, txt_x + txt_col_w, y_bottom - 12)
             rc = pdf_page.insert_textbox(
                 ocr_rect,
                 ocr_text,
@@ -165,6 +165,22 @@ def build_pdf(volume: str, page: str, base: str, output: str) -> None:
                     fontsize=FONT_SIZE - 1,
                     align=fitz.TEXT_ALIGN_LEFT,
                 )
+
+            # GitHub edit link (small, grey, clickable) at bottom of row
+            edit_url = f"https://github.com/DigitalHistory-Lund/SecToPat-CatCards/edit/main/transcriptions/{stem}.txt"
+            link_label = "Suggest improved transcription: "
+            full_text = link_label + edit_url
+            text_width = font.text_length(full_text, fontsize=5)
+            link_x = (PAGE_W - text_width) / 2
+            tw_link = fitz.TextWriter(pdf_page.rect)
+            link_y = y_bottom - 4
+            label_end = tw_link.append(fitz.Point(link_x, link_y), link_label, font=font, fontsize=5)
+            url_start = label_end[1]
+            url_end = tw_link.append(url_start, edit_url, font=font, fontsize=5)
+            tw_link.write_text(pdf_page, color=(0.5, 0.5, 0.5))
+            url_rect = url_end[0]
+            link_rect = fitz.Rect(url_start.x, url_rect.y0, url_rect.x1, url_rect.y1)
+            pdf_page.insert_link({"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url})
 
     output_path = os.path.join(base, output)
     doc.save(output_path, deflate=True, garbage=4)
