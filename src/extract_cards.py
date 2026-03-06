@@ -127,13 +127,17 @@ def _filter_and_sort_contours(
             current_y = y_centers[idx]
     rows.append(current_row)
 
-    # Sort each row by x, assign (col, row) coordinates
+    # Assign absolute (col, row) coordinates based on position in image
     result: list[tuple[int, int, int, int, int, int]] = []
-    for row_idx, row_members in enumerate(rows):
+    for row_members in rows:
+        mean_y = int(np.mean([y_centers[i] for i in row_members]))
+        abs_row = min(int(mean_y / (img_h / 4)), 3)
         row_members.sort(key=lambda i: candidates[i][0])
-        for col_idx, member_idx in enumerate(row_members):
+        for member_idx in row_members:
             x, y, w, h = candidates[member_idx]
-            result.append((x, y, w, h, col_idx, row_idx))
+            x_center = x + w // 2
+            col = 0 if x_center < img_w / 2 else 1
+            result.append((x, y, w, h, col, abs_row))
 
     if debug_dir and debug_img is not None:
         vis = debug_img.copy()
@@ -144,6 +148,129 @@ def _filter_and_sort_contours(
         cv2.imwrite(str(debug_dir / "04_grid.png"), vis)
 
     return result
+
+
+def _boxes_overlap(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> bool:
+    """Return True if two (x, y, w, h) boxes have any pixel overlap."""
+    ax, ay, aw, ah = a
+    bx, by, bw, bh = b
+    return ax < bx + bw and ax + aw > bx and ay < by + bh and ay + ah > by
+
+
+def _recover_missing_cards(
+    cards: list[tuple[int, int, int, int, int, int]],
+    gray: np.ndarray,
+    img_h: int,
+    img_w: int,
+    config: Config,
+    debug_dir: Path | None = None,
+    debug_img: np.ndarray | None = None,
+) -> list[tuple[int, int, int, int, int, int]]:
+    """Recover cards missed by contour detection using known 2×4 grid geometry.
+
+    Builds a standard set of 8 expected boxes from detected card positions.
+    For each standard box that has ZERO overlap with any detected card,
+    checks pixel variance to confirm a card is present, then adds it.
+    """
+    if not cards:
+        return cards
+
+    # Median card dimensions from detections
+    med_w = int(np.median([cw for _, _, cw, _, _, _ in cards]))
+    med_h = int(np.median([ch for _, _, _, ch, _, _ in cards]))
+
+    # Per-column x-positions (median x of detected cards in each column)
+    col_xs: dict[int, list[int]] = {0: [], 1: []}
+    for x, _, _, _, col, _ in cards:
+        col_xs[col].append(x)
+
+    col_x_pos: dict[int, int] = {}
+    for col in (0, 1):
+        if col_xs[col]:
+            col_x_pos[col] = int(np.median(col_xs[col]))
+
+    # Per-row y-positions (median y of detected cards in each row)
+    row_ys: dict[int, list[int]] = {r: [] for r in range(4)}
+    for _, y, _, _, _, row in cards:
+        row_ys[row].append(y)
+
+    row_y_pos: dict[int, int] = {}
+    for row in range(4):
+        if row_ys[row]:
+            row_y_pos[row] = int(np.median(row_ys[row]))
+
+    # Extrapolate missing row positions using median step between known rows
+    known_rows = sorted(row_y_pos.keys())
+    if len(known_rows) >= 2:
+        steps = []
+        for i in range(len(known_rows) - 1):
+            dy = row_y_pos[known_rows[i + 1]] - row_y_pos[known_rows[i]]
+            row_gap = known_rows[i + 1] - known_rows[i]
+            steps.append(dy / row_gap)
+        med_step = int(np.median(steps))
+
+        for row in range(4):
+            if row not in row_y_pos:
+                nearest = min(known_rows, key=lambda r: abs(r - row))
+                row_y_pos[row] = row_y_pos[nearest] + med_step * (row - nearest)
+
+    # Extrapolate missing column positions
+    if len(col_x_pos) == 1:
+        known_col = next(iter(col_x_pos))
+        missing_col = 1 - known_col
+        if known_col == 0:
+            col_x_pos[missing_col] = col_x_pos[known_col] + med_w + (img_w - 2 * med_w) // 3
+        else:
+            col_x_pos[missing_col] = col_x_pos[known_col] - med_w - (img_w - 2 * med_w) // 3
+
+    # Build the 8 standard boxes
+    standard_boxes: list[tuple[int, int, int, int, int, int]] = []
+    for col in (0, 1):
+        if col not in col_x_pos:
+            continue
+        for row in range(4):
+            if row not in row_y_pos:
+                continue
+            sx = max(0, col_x_pos[col])
+            sy = max(0, row_y_pos[row])
+            sw = min(med_w, img_w - sx)
+            sh = min(med_h, img_h - sy)
+            standard_boxes.append((sx, sy, sw, sh, col, row))
+
+    # For each standard box, check overlap against every detected card
+    detected_rects = [(x, y, cw, ch) for x, y, cw, ch, _, _ in cards]
+
+    recovered: list[tuple[int, int, int, int, int, int]] = []
+    for sx, sy, sw, sh, col, row in standard_boxes:
+        std_rect = (sx, sy, sw, sh)
+        has_overlap = any(_boxes_overlap(std_rect, det) for det in detected_rects)
+        if has_overlap:
+            continue
+
+        # No detected card overlaps this slot — check variance to confirm content
+        region = gray[sy:sy + sh, sx:sx + sw]
+        if region.size == 0:
+            continue
+
+        variance = float(np.var(region))
+        if variance >= config.cv_recovery_min_variance:
+            recovered.append((sx, sy, sw, sh, col, row))
+
+    if debug_dir and debug_img is not None:
+        vis = debug_img.copy()
+        for x, y, cw, ch, col, row in cards:
+            cv2.rectangle(vis, (x, y), (x + cw, y + ch), (0, 255, 0), 4)
+            cv2.putText(vis, f"({col},{row})", (x + 10, y + 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
+        for x, y, cw, ch, col, row in recovered:
+            cv2.rectangle(vis, (x, y), (x + cw, y + ch), (0, 165, 255), 4)
+            cv2.putText(vis, f"({col},{row}) R", (x + 10, y + 50),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 165, 255), 3)
+        cv2.imwrite(str(debug_dir / "05_recovery.png"), vis)
+
+    all_cards = cards + recovered
+    all_cards.sort(key=lambda c: (c[5], c[4]))  # sort by row, then col
+    return all_cards
 
 
 def extract_cards_from_page(
@@ -184,6 +311,9 @@ def extract_cards_from_page(
         contours = _find_card_contours_light(gray, config, debug_dir)
 
     cards = _filter_and_sort_contours(contours, h, w, config, debug_dir, img)
+
+    if len(cards) < 8:
+        cards = _recover_missing_cards(cards, gray, h, w, config, debug_dir, img)
 
     if max_cards is not None:
         cards = cards[:max_cards]

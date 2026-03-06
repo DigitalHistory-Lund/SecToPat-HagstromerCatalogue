@@ -1,3 +1,4 @@
-[Tournefort, ]
-Se: Vaillant, Remarques sur la methode de Tournefort.
+[Tounefort, ]
+Se: Vaillant,
+Remarques sur la methode de Tounefort.
 Ms 77:17.

@@ -43,6 +43,8 @@ class Config:
     cv_max_aspect: float
     cv_min_rectangularity: float
     cv_row_threshold: float
+    # Recovery
+    cv_recovery_min_variance: float
 
 
 def load_config() -> Config:
@@ -85,4 +87,6 @@ def load_config() -> Config:
         cv_max_aspect=float(os.environ.get("CV_MAX_ASPECT", "3.0")),
         cv_min_rectangularity=float(os.environ.get("CV_MIN_RECTANGULARITY", "0.60")),
         cv_row_threshold=float(os.environ.get("CV_ROW_THRESHOLD", "0.05")),
+        # Recovery
+        cv_recovery_min_variance=float(os.environ.get("CV_RECOVERY_MIN_VARIANCE", "500")),
     )
