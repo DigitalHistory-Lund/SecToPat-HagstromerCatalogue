@@ -1,6 +1,6 @@
 [project]
 name = "catalogue-hagstrom"
-version = "0.1.0"
+version = "0.1.0-alpha"
 description = "Extraction pipeline for the Hagstrom manuscript catalogue"
 requires-python = ">=3.12"
 dependencies = [

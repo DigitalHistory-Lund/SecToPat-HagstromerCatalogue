@@ -16,10 +16,13 @@ import glob
 import io
 import os
 import sys
+import tomllib
 from collections import OrderedDict
+from pathlib import Path
 
 import cv2
 import fitz  # PyMuPDF
+from tqdm import tqdm
 
 from .config import load_config
 
@@ -158,8 +161,13 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
         if current:
             page_batches.append(current)
 
+    # --- Read version once ---
+    _pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    with open(_pyproject, "rb") as f:
+        version_text = "v" + tomllib.load(f)["project"]["version"]
+
     # --- Render each page ---
-    for page_num_idx, batch in enumerate(page_batches):
+    for page_num_idx, batch in tqdm(enumerate(page_batches), total=len(page_batches), unit="page", desc="PDF"):
         pdf_page = doc.new_page(width=PAGE_W, height=PAGE_H)
 
         # Distribute extra vertical space proportionally among rows
@@ -254,6 +262,14 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
             pdf_page.insert_link({"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url})
 
             y_cursor = y_bottom + ROW_GAP
+
+        # --- Version (bottom-left) ---
+        tw_ver = fitz.TextWriter(pdf_page.rect)
+        tw_ver.append(
+            fitz.Point(MARGIN, PAGE_H - 10),
+            version_text, font=font, fontsize=7,
+        )
+        tw_ver.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
         # --- Page number (bottom-right) ---
         page_num_text = f"Page {page_num_idx + 1}"
