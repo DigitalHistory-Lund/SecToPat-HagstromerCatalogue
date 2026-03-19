@@ -1,1 +1,4 @@
-There is no text present in the provided image. The image consists of a minimalist silhouette against a light background with a black rectangular border, and contains no visible text.
+There is no text present in the image. Therefore, the extracted text is: 
+
+```
+```

@@ -1,4 +1,4 @@
-#Pharmacopoeia
-suecia
-Se: Stobaeus,K., Collections formula in emendationem pharmacopoeae svecanae.
+#Pharmaco p o e a
+suecica
+Se: Stobaeus, K., Collections formulae in emendationem pharmacopoeae svecanae.
 = Ms 516.

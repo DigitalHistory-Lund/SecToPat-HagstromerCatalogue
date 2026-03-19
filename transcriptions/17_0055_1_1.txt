@@ -1,4 +1,4 @@
-/S stockholm
+#S stockholm
 Karolinska institutets Bibliotek
 Se: Stockholm. Karolinska institutet. Biblioteket.
-" Stockhol... Collegium medicum. Biblioteket.
+"Stockholm. Collegium medicum. Biblioteket."

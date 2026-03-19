@@ -1,8 +1,8 @@
-1.
-#Hagsströmer, A J
+1,
+#Hagsström, A J
 Se: Acrell, J.G., (1741-1801). Acrells Buste. 1810.
-Ms 61:118
 " Stockholm, Karol. inst. Biblioteket. Kataloger. 1819.
-Ms 642.
 " Dio. Efter 1825.
-Ms 643.
+Ms 61:118
+Ms 642
+Ms 643

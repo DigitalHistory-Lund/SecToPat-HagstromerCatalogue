@@ -1,12 +1,11 @@
-1.
 Ms 158:2:2 etc.
 [Bäck, Abraham]
 Brev till Bäck från åtskilliga. [1740-54.]
 I: Adversaria medica: Ser.2:Vol.3. = Ms 158:2.
-Acrel,0.A., 1 odat.  Ms 158:2:25.
-Adelcrantz,A., "  :23f.
-Baelter,L., 1748. (5)  :24a-c, 32.
-Baelter,S., 1754. (3)  :56a-c.
-Bolinder,P., 1740-47. (5)  :22,23a-d.
-Dahlman,E:son,K., 1754.  :52.
-Gissler,N., 1754-55. (3)  :46a,47,48.
+Acrel,0.A., 1 odat.
+Adelcrantz,A., " 
+Baelter,L., 1748. (5) 
+Baelter,S., 1754. (3) 
+Bolinder,P., 1740-47. (5) 
+Dahlman,E:son,K., 1754. 
+Gissler,N., 1754-55. (3)

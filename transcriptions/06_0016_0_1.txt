@@ -1,4 +1,5 @@
-#Liljevalch, P 0
-[givare]
-Se: Haller,A.v., Anteckningar...
+#Liljevalch, P  
+0  
+[givare]  
+Se: Haller,A.v., Anteckningar...  
 Ms 61:119.
