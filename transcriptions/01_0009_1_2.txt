@@ -1,4 +1,2 @@
-Beller, H
-(médecin du Roy, Nancy, 1700-t)
+(médecinduRoy, Nancy, 1700-t)
 Se: Anonymous, Tractatus de morbis ocularum.
-Ms 77:3.
