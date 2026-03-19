@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scan extracted_images/ and extracted_cards/ for corrupt or incomplete images.
+"""Scan extracted_images/ and extracted_cards/ for corrupt images.
 
 Checks (fast to slow):
   1. Zero-byte files

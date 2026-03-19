@@ -1,7 +1,9 @@
-from collections import Counter
-from tqdm import tqdm
-from .config import Config, load_config
 import re
+from collections import Counter
+
+from tqdm import tqdm
+
+from .config import load_config
 
 config = load_config()
 
@@ -21,5 +23,7 @@ for card_path in tqdm(extracted_cards_dir.glob("*.png")):
 
 for page, count in cntr.most_common():
     if count != 8:
-        volume, page_str = re.match(r"(\d{2})_(\d{4})", "_".join(page)).groups()
+        volume, page_str = re.match(
+            r"(\d{2})_(\d{4})", "_".join(page)
+        ).groups()
         print(f"{volume}.pdf p.{int(page_str)}\t{count} cards")

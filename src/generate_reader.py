@@ -1,13 +1,13 @@
-"""Generate a reader/ directory with .md files for browsing extracted cards and OCR text."""
+"""Generate reader/ with .md files for browsing cards and OCR text."""
 
 import os
 import shutil
 from collections import defaultdict
-from pathlib import Path
 
 from tqdm import tqdm
 
 from .config import load_config
+
 
 def parse_stem(stem: str) -> tuple[str, str, str, str]:
     """Parse a card stem like '05_0001_0_2' into (vol, page, col, row)."""
@@ -68,11 +68,19 @@ def generate_reader() -> None:
                 cards = sorted(pages[page])
                 page_lines: list[str] = []
                 for col, row, stem in cards:
-                    ocr_text = (cfg.transcriptions_dir / f"{stem}.txt").read_text().rstrip()
+                    ocr_text = (
+                        (cfg.transcriptions_dir / f"{stem}.txt")
+                        .read_text()
+                        .rstrip()
+                    )
                     img_src = f"{cards_rel}/{stem}.png"
-                    ocr_html = ocr_text.replace("&", "&amp;").replace("<", "&lt;")
+                    ocr_html = ocr_text.replace("&", "&amp;").replace(
+                        "<", "&lt;"
+                    )
                     page_lines.append("<table><tr>")
-                    page_lines.append(f'<td><img src="{img_src}" width="350"></td>')
+                    page_lines.append(
+                        f'<td><img src="{img_src}" width="350"></td>'
+                    )
                     page_lines.append(f"<td><pre>{ocr_html}</pre></td>")
                     page_lines.append("</tr></table>")
                     page_lines.append("")

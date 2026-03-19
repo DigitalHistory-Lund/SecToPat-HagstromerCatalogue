@@ -2,7 +2,6 @@
 
 import random
 from dataclasses import dataclass
-from pathlib import Path
 
 import fitz
 
@@ -12,6 +11,7 @@ from .config import Config
 @dataclass(frozen=True)
 class SubsetSelection:
     """Maps volume stems to lists of selected page indices (0-based)."""
+
     volumes: dict[str, list[int]]  # e.g. {"05": [3, 17]}
     num_cards: int  # per-page cap applied after detection
 
@@ -33,7 +33,9 @@ def select_subset(config: Config) -> SubsetSelection:
         page_count = len(doc)
         doc.close()
 
-        pages = rng.sample(range(page_count), min(config.num_pages, page_count))
+        pages = rng.sample(
+            range(page_count), min(config.num_pages, page_count)
+        )
         pages.sort()
         volumes[volume] = pages
 

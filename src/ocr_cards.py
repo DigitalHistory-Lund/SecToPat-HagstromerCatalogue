@@ -4,7 +4,6 @@ import argparse
 from pathlib import Path
 
 import ollama
-
 from tqdm import tqdm
 
 from .config import Config, load_config
@@ -39,8 +38,12 @@ def ocr_card(card_path: Path, config: Config, force: bool = False) -> Path:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="OCR card images using ollama VLM")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing files")
+    parser = argparse.ArgumentParser(
+        description="OCR card images using ollama VLM"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing files"
+    )
     args = parser.parse_args()
 
     config = load_config()
@@ -51,7 +54,11 @@ def main() -> None:
         return
 
     if not args.force:
-        card_images = [p for p in card_images if not (config.ocr_output_dir / f"{p.stem}.txt").exists()]
+        card_images = [
+            p
+            for p in card_images
+            if not (config.ocr_output_dir / f"{p.stem}.txt").exists()
+        ]
 
     with tqdm(card_images, unit="card") as bar:
         for card_path in bar:

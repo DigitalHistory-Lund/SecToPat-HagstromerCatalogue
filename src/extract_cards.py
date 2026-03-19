@@ -1,4 +1,4 @@
-"""Detect and extract individual catalogue cards from page images using OpenCV."""
+"""Detect and extract catalogue cards from page images using OpenCV."""
 
 import argparse
 import tempfile
@@ -6,30 +6,35 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-
 from tqdm import tqdm
 
 from .config import Config, load_config
 
 
 def _classify_background(gray: np.ndarray, config: Config) -> str:
-    """Classify page background as 'light' or 'dark' by sampling border pixels."""
+    """Classify background as 'light' or 'dark' via border pixels."""
     h, w = gray.shape
     border = config.cv_bg_border
-    samples = np.concatenate([
-        gray[:border, :].ravel(),       # top
-        gray[-border:, :].ravel(),      # bottom
-        gray[:, :border].ravel(),       # left
-        gray[:, -border:].ravel(),      # right
-    ])
+    samples = np.concatenate(
+        [
+            gray[:border, :].ravel(),  # top
+            gray[-border:, :].ravel(),  # bottom
+            gray[:, :border].ravel(),  # left
+            gray[:, -border:].ravel(),  # right
+        ]
+    )
     return "dark" if np.median(samples) < config.cv_bg_threshold else "light"
 
 
-def _find_card_contours_light(gray: np.ndarray, config: Config, debug_dir: Path | None = None) -> list:
+def _find_card_contours_light(
+    gray: np.ndarray, config: Config, debug_dir: Path | None = None
+) -> list:
     """Find card contours on a light background using Canny + dilation."""
     k = config.cv_light_blur_size
     blurred = cv2.GaussianBlur(gray, (k, k), 0)
-    edges = cv2.Canny(blurred, config.cv_light_canny_low, config.cv_light_canny_high)
+    edges = cv2.Canny(
+        blurred, config.cv_light_canny_low, config.cv_light_canny_high
+    )
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "01_edges.png"), edges)
@@ -41,25 +46,35 @@ def _find_card_contours_light(gray: np.ndarray, config: Config, debug_dir: Path 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "02_dilated.png"), dilated)
 
-    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     return contours
 
 
-def _find_card_contours_dark(gray: np.ndarray, config: Config, debug_dir: Path | None = None) -> list:
+def _find_card_contours_dark(
+    gray: np.ndarray, config: Config, debug_dir: Path | None = None
+) -> list:
     """Find card contours on a dark background using binary threshold."""
-    _, thresh = cv2.threshold(gray, config.cv_dark_thresh_value, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(
+        gray, config.cv_dark_thresh_value, 255, cv2.THRESH_BINARY
+    )
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "01_thresh.png"), thresh)
 
     ck = config.cv_dark_close_size
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (ck, ck))
-    closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=config.cv_dark_close_iter)
+    closed = cv2.morphologyEx(
+        thresh, cv2.MORPH_CLOSE, kernel, iterations=config.cv_dark_close_iter
+    )
 
     if debug_dir:
         cv2.imwrite(str(debug_dir / "02_closed.png"), closed)
 
-    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     return contours
 
 
@@ -83,7 +98,10 @@ def _filter_and_sort_contours(
         area = w * h
         area_ratio = area / img_area
 
-        if area_ratio < config.cv_min_area_ratio or area_ratio > config.cv_max_area_ratio:
+        if (
+            area_ratio < config.cv_min_area_ratio
+            or area_ratio > config.cv_max_area_ratio
+        ):
             continue
         if w < config.cv_min_dim or h < config.cv_min_dim:
             continue
@@ -144,13 +162,23 @@ def _filter_and_sort_contours(
         for x, y, w, h, col, row in result:
             cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 0, 255), 4)
             label = f"({col},{row})"
-            cv2.putText(vis, label, (x + 10, y + 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
+            cv2.putText(
+                vis,
+                label,
+                (x + 10, y + 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.5,
+                (0, 0, 255),
+                3,
+            )
         cv2.imwrite(str(debug_dir / "04_grid.png"), vis)
 
     return result
 
 
-def _boxes_overlap(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> bool:
+def _boxes_overlap(
+    a: tuple[int, int, int, int], b: tuple[int, int, int, int]
+) -> bool:
     """Return True if two (x, y, w, h) boxes have any pixel overlap."""
     ax, ay, aw, ah = a
     bx, by, bw, bh = b
@@ -212,16 +240,22 @@ def _recover_missing_cards(
         for row in range(4):
             if row not in row_y_pos:
                 nearest = min(known_rows, key=lambda r: abs(r - row))
-                row_y_pos[row] = row_y_pos[nearest] + med_step * (row - nearest)
+                row_y_pos[row] = row_y_pos[nearest] + med_step * (
+                    row - nearest
+                )
 
     # Extrapolate missing column positions
     if len(col_x_pos) == 1:
         known_col = next(iter(col_x_pos))
         missing_col = 1 - known_col
         if known_col == 0:
-            col_x_pos[missing_col] = col_x_pos[known_col] + med_w + (img_w - 2 * med_w) // 3
+            col_x_pos[missing_col] = (
+                col_x_pos[known_col] + med_w + (img_w - 2 * med_w) // 3
+            )
         else:
-            col_x_pos[missing_col] = col_x_pos[known_col] - med_w - (img_w - 2 * med_w) // 3
+            col_x_pos[missing_col] = (
+                col_x_pos[known_col] - med_w - (img_w - 2 * med_w) // 3
+            )
 
     # Build the 8 standard boxes
     standard_boxes: list[tuple[int, int, int, int, int, int]] = []
@@ -243,12 +277,14 @@ def _recover_missing_cards(
     recovered: list[tuple[int, int, int, int, int, int]] = []
     for sx, sy, sw, sh, col, row in standard_boxes:
         std_rect = (sx, sy, sw, sh)
-        has_overlap = any(_boxes_overlap(std_rect, det) for det in detected_rects)
+        has_overlap = any(
+            _boxes_overlap(std_rect, det) for det in detected_rects
+        )
         if has_overlap:
             continue
 
-        # No detected card overlaps this slot — check variance to confirm content
-        region = gray[sy:sy + sh, sx:sx + sw]
+        # No detected card overlaps this slot — check variance
+        region = gray[sy : sy + sh, sx : sx + sw]
         if region.size == 0:
             continue
 
@@ -260,12 +296,26 @@ def _recover_missing_cards(
         vis = debug_img.copy()
         for x, y, cw, ch, col, row in cards:
             cv2.rectangle(vis, (x, y), (x + cw, y + ch), (0, 255, 0), 4)
-            cv2.putText(vis, f"({col},{row})", (x + 10, y + 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 3)
+            cv2.putText(
+                vis,
+                f"({col},{row})",
+                (x + 10, y + 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.5,
+                (0, 255, 0),
+                3,
+            )
         for x, y, cw, ch, col, row in recovered:
             cv2.rectangle(vis, (x, y), (x + cw, y + ch), (0, 165, 255), 4)
-            cv2.putText(vis, f"({col},{row}) R", (x + 10, y + 50),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 165, 255), 3)
+            cv2.putText(
+                vis,
+                f"({col},{row}) R",
+                (x + 10, y + 50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.5,
+                (0, 165, 255),
+                3,
+            )
         cv2.imwrite(str(debug_dir / "05_recovery.png"), vis)
 
     all_cards = cards + recovered
@@ -313,7 +363,9 @@ def extract_cards_from_page(
     cards = _filter_and_sort_contours(contours, h, w, config, debug_dir, img)
 
     if len(cards) < 8:
-        cards = _recover_missing_cards(cards, gray, h, w, config, debug_dir, img)
+        cards = _recover_missing_cards(
+            cards, gray, h, w, config, debug_dir, img
+        )
 
     if max_cards is not None:
         cards = cards[:max_cards]
@@ -335,9 +387,17 @@ def extract_cards_from_page(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract cards from page images")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing files")
-    parser.add_argument("--debug", action="store_true", help="Save intermediate images for debugging")
+    parser = argparse.ArgumentParser(
+        description="Extract cards from page images"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing files"
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Save intermediate images for debugging",
+    )
     args = parser.parse_args()
 
     config = load_config()
@@ -356,7 +416,9 @@ def main() -> None:
         for page_path in bar:
             bar.desc = f"Cards {page_path.stem}"
             debug_dir = debug_base / page_path.stem if debug_base else None
-            extract_cards_from_page(page_path, config, force=args.force, debug_dir=debug_dir)
+            extract_cards_from_page(
+                page_path, config, force=args.force, debug_dir=debug_dir
+            )
 
 
 if __name__ == "__main__":

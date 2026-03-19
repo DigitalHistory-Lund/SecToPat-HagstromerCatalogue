@@ -9,11 +9,10 @@ the left column of the original page comes first, followed by the right.
 Usage:
     python -m src.generate_card_pdf                 # all volumes
     python -m src.generate_card_pdf 01              # single volume, all pages
-    python -m src.generate_card_pdf 01 0009         # single volume, single page
+    python -m src.generate_card_pdf 01 0009  # single page
 """
 
 import glob
-import io
 import os
 import sys
 import tomllib
@@ -99,7 +98,9 @@ def downscale_to_jpeg(path: str) -> tuple[bytes, float]:
         new_h = int(new_w / aspect)
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-    ok, buf = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, IMG_JPEG_QUALITY])
+    ok, buf = cv2.imencode(
+        ".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, IMG_JPEG_QUALITY]
+    )
     if not ok:
         raise RuntimeError(f"Failed to encode {path}")
     return bytes(buf), aspect
@@ -167,13 +168,20 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
         version_text = "v" + tomllib.load(f)["project"]["version"]
 
     # --- Render each page ---
-    for page_num_idx, batch in tqdm(enumerate(page_batches), total=len(page_batches), unit="page", desc="PDF"):
+    for page_num_idx, batch in tqdm(
+        enumerate(page_batches),
+        total=len(page_batches),
+        unit="page",
+        desc="PDF",
+    ):
         pdf_page = doc.new_page(width=PAGE_W, height=PAGE_H)
 
         # Distribute extra vertical space proportionally among rows
         total_min_h = sum(info[3] for info in batch)
         total_gaps = max(len(batch) - 1, 0) * ROW_GAP
-        scale = (usable_h - total_gaps) / total_min_h if total_min_h > 0 else 1.0
+        scale = (
+            (usable_h - total_gaps) / total_min_h if total_min_h > 0 else 1.0
+        )
         scale = max(scale, 1.0)  # never shrink below requested minimum
 
         # --- Page header ---
@@ -186,7 +194,9 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
         tw_header = fitz.TextWriter(pdf_page.rect)
         tw_header.append(
             fitz.Point((PAGE_W - header_width) / 2, MARGIN - 4),
-            header_text, font=font, fontsize=7,
+            header_text,
+            font=font,
+            fontsize=7,
         )
         tw_header.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
@@ -231,11 +241,15 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
 
             # Card label (grey, smaller)
             tw_label = fitz.TextWriter(pdf_page.rect)
-            tw_label.append(fitz.Point(txt_x, y_top + 10), stem, font=font, fontsize=7)
+            tw_label.append(
+                fitz.Point(txt_x, y_top + 10), stem, font=font, fontsize=7
+            )
             tw_label.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
             # OCR text
-            ocr_rect = fitz.Rect(txt_x, y_top + 18, txt_x + txt_col_w, y_bottom - 12)
+            ocr_rect = fitz.Rect(
+                txt_x, y_top + 18, txt_x + txt_col_w, y_bottom - 12
+            )
             pdf_page.insert_textbox(
                 ocr_rect,
                 ocr_text,
@@ -253,13 +267,21 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
             link_x = (PAGE_W - text_width) / 2
             tw_link = fitz.TextWriter(pdf_page.rect)
             link_y = y_bottom - 4
-            label_end = tw_link.append(fitz.Point(link_x, link_y), link_label, font=font, fontsize=5)
+            label_end = tw_link.append(
+                fitz.Point(link_x, link_y), link_label, font=font, fontsize=5
+            )
             url_start = label_end[1]
-            url_end = tw_link.append(url_start, edit_url, font=font, fontsize=5)
+            url_end = tw_link.append(
+                url_start, edit_url, font=font, fontsize=5
+            )
             tw_link.write_text(pdf_page, color=(0.5, 0.5, 0.5))
             url_rect = url_end[0]
-            link_rect = fitz.Rect(url_start.x, url_rect.y0, url_rect.x1, url_rect.y1)
-            pdf_page.insert_link({"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url})
+            link_rect = fitz.Rect(
+                url_start.x, url_rect.y0, url_rect.x1, url_rect.y1
+            )
+            pdf_page.insert_link(
+                {"kind": fitz.LINK_URI, "from": link_rect, "uri": edit_url}
+            )
 
             y_cursor = y_bottom + ROW_GAP
 
@@ -267,7 +289,9 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
         tw_ver = fitz.TextWriter(pdf_page.rect)
         tw_ver.append(
             fitz.Point(MARGIN, PAGE_H - 10),
-            version_text, font=font, fontsize=7,
+            version_text,
+            font=font,
+            fontsize=7,
         )
         tw_ver.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
@@ -277,13 +301,17 @@ def build_pdf(card_paths: list[str], ocr_dir: str, output: str) -> None:
         tw_pnum = fitz.TextWriter(pdf_page.rect)
         tw_pnum.append(
             fitz.Point(PAGE_W - MARGIN - pnum_width, PAGE_H - 10),
-            page_num_text, font=font, fontsize=7,
+            page_num_text,
+            font=font,
+            fontsize=7,
         )
         tw_pnum.write_text(pdf_page, color=(0.5, 0.5, 0.5))
 
     doc.save(output, deflate=True, garbage=4)
     doc.close()
-    print(f"Saved {output} ({len(card_paths)} cards, {len(page_batches)} pages)")
+    print(
+        f"Saved {output} ({len(card_paths)} cards, {len(page_batches)} pages)"
+    )
 
 
 def main() -> None:
@@ -317,7 +345,10 @@ def main() -> None:
         for volume in volumes:
             pages = discover_pages(volume, cards_dir)
             if pages:
-                print(f"Volume {volume}: {len(pages)} pages ({pages[0]}–{pages[-1]})")
+                print(
+                    f"Volume {volume}: {len(pages)} pages"
+                    f" ({pages[0]}–{pages[-1]})"
+                )
                 for p in pages:
                     card_paths.extend(find_cards(volume, p, cards_dir))
         output = "all_cards.pdf"

@@ -4,7 +4,6 @@ import argparse
 from pathlib import Path
 
 import fitz
-
 from tqdm import tqdm
 
 from .config import Config, load_config
@@ -45,8 +44,12 @@ def extract_pages_from_pdf(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Extract page images from PDFs")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing files")
+    parser = argparse.ArgumentParser(
+        description="Extract page images from PDFs"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing files"
+    )
     args = parser.parse_args()
 
     config = load_config()

@@ -1,10 +1,10 @@
 """Load .env and expose a frozen Config dataclass."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
-import os
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -56,10 +56,14 @@ def load_config() -> Config:
 
     return Config(
         raw_cat_path=Path(raw),
-        extracted_images_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_IMAGES_DIR", "extracted_images"),
-        extracted_cards_dir=PROJECT_ROOT / os.environ.get("EXTRACTED_CARDS_DIR", "extracted_cards"),
-        ocr_output_dir=PROJECT_ROOT / os.environ.get("OCR_OUTPUT_DIR", "ocr_output"),
-        transcriptions_dir=PROJECT_ROOT / os.environ.get("TRANSCRIPTIONS_DIR", "transcriptions"),
+        extracted_images_dir=PROJECT_ROOT
+        / os.environ.get("EXTRACTED_IMAGES_DIR", "extracted_images"),
+        extracted_cards_dir=PROJECT_ROOT
+        / os.environ.get("EXTRACTED_CARDS_DIR", "extracted_cards"),
+        ocr_output_dir=PROJECT_ROOT
+        / os.environ.get("OCR_OUTPUT_DIR", "ocr_output"),
+        transcriptions_dir=PROJECT_ROOT
+        / os.environ.get("TRANSCRIPTIONS_DIR", "transcriptions"),
         reader_dir=PROJECT_ROOT / os.environ.get("READER_DIR", "reader"),
         ocr_model=os.environ.get("OCR_MODEL", "qwen3-vl:2b"),
         seed=int(os.environ.get("SEED", "1")),
@@ -76,7 +80,9 @@ def load_config() -> Config:
         cv_light_dilate_size=int(os.environ.get("CV_LIGHT_DILATE_SIZE", "25")),
         cv_light_dilate_iter=int(os.environ.get("CV_LIGHT_DILATE_ITER", "3")),
         # Dark background
-        cv_dark_thresh_value=int(os.environ.get("CV_DARK_THRESH_VALUE", "160")),
+        cv_dark_thresh_value=int(
+            os.environ.get("CV_DARK_THRESH_VALUE", "160")
+        ),
         cv_dark_close_size=int(os.environ.get("CV_DARK_CLOSE_SIZE", "15")),
         cv_dark_close_iter=int(os.environ.get("CV_DARK_CLOSE_ITER", "2")),
         # Contour filtering
@@ -85,8 +91,12 @@ def load_config() -> Config:
         cv_min_dim=int(os.environ.get("CV_MIN_DIM", "200")),
         cv_min_aspect=float(os.environ.get("CV_MIN_ASPECT", "1.0")),
         cv_max_aspect=float(os.environ.get("CV_MAX_ASPECT", "3.0")),
-        cv_min_rectangularity=float(os.environ.get("CV_MIN_RECTANGULARITY", "0.60")),
+        cv_min_rectangularity=float(
+            os.environ.get("CV_MIN_RECTANGULARITY", "0.60")
+        ),
         cv_row_threshold=float(os.environ.get("CV_ROW_THRESHOLD", "0.05")),
         # Recovery
-        cv_recovery_min_variance=float(os.environ.get("CV_RECOVERY_MIN_VARIANCE", "500")),
+        cv_recovery_min_variance=float(
+            os.environ.get("CV_RECOVERY_MIN_VARIANCE", "500")
+        ),
     )
