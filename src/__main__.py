@@ -15,6 +15,7 @@ from .extract_cards import extract_cards_from_page
 from .extract_pages import extract_pages_from_pdf
 from .generate_card_pdf import main as generate_card_pdf_main
 from .generate_reader import generate_reader
+from .generate_site import generate_site as generate_site_main
 from .ocr_cards import ocr_card
 from .subset import select_subset
 
@@ -40,6 +41,7 @@ def main() -> None:
             "check-images",
             "card-pdf",
             "reader",
+            "site",
         ],
         help="Run a single step",
     )
@@ -64,6 +66,9 @@ def main() -> None:
         return
     if args.step == "reader":
         generate_reader()
+        return
+    if args.step == "site":
+        generate_site_main()
         return
 
     config = load_config()

@@ -10,3 +10,10 @@ searchable_pdfs/
 __pycache__/
 
 *.pdf
+
+site/
+index.qmd
+_site/
+.quarto/
+
+/.quarto/
