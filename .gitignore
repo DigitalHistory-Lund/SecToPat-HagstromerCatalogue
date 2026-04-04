@@ -1,5 +1,20 @@
 .venv/
 .env
+.DS_Store
 
 extracted_cards/
 extracted_images/
+ocr_output/
+reader/
+searchable_pdfs/
+__pycache__/
+
+*.pdf
+
+site/
+index.qmd
+_build_info.yml
+_site/
+.quarto/
+
+/.quarto/

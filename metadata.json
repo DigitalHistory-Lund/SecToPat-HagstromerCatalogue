@@ -1,0 +1,39 @@
+{
+  "title": "Hagstr\u00f6mer Library Catalogue",
+  "summary": [
+    "The Hagstr\u00f6mer Library is part of Karolinska Institutet and consists of over 150,000 books and journals connected to disciplines adjacent to the medical sciences. The main collection derives from Karolinska Institutet and the Swedish Medical Association (Svenska L\u00e4karef\u00f6rbundet) and the collection specialises in material from the period 1600-1990. The mission of the library is to preserve the cultural heritage of Karolinska Institutet, and it is the core of the Medical History and Heritage unit (MHK) at Karolinska Institutet.",
+    "As a part of the Secrets to Patent project, we have digitised and processed the catalogue cards for the library\u2019s main collection. Each card has been extracted from scanned volume pages, processed with OCR, and post-processed to perform basic cleaning and correction, such as extracting the top-corner of each card to identify the catalogue code. All the original PDF-files are available on ALVIN, where they are published under a CC-00 license."
+  ],
+  "summary_short": "A digitised and OCR-processed catalogue of the Hagstr\u00f6mer Library\u2019s main collection. Createsd as part of the Secrets to Patent project.",
+  "authors": [
+    "Mathias Johansson",
+    "Cecilia Lundstr\u00f6m",
+    "Natacha Klein K\u00e4fer"
+  ],
+  "library_url": "https://kib.ki.se/en/hagstromerbiblioteket/about-hagstromerbiblioteket",
+  "repo_url": "https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue",
+  "volumes": {
+    "01": { "title": "Volume 01", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657566&c=1#alvin-record%3A657566" },
+    "02": { "title": "Volume 02", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657557&c=2#alvin-record%3A657557" },
+    "03": { "title": "Volume 03", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657568&c=3#alvin-record%3A657568" },
+    "04": { "title": "Volume 04", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657570&c=4#alvin-record%3A657570" },
+    "05": { "title": "Volume 05", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657600&c=5#alvin-record%3A657600" },
+    "06": { "title": "Volume 06", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657598&c=6#alvin-record%3A657598" },
+    "07": { "title": "Volume 07", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657572&c=7#alvin-record%3A657572" },
+    "08": { "title": "Volume 08", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657605&c=8#alvin-record%3A657605" },
+    "09": { "title": "Volume 09", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657596&c=9#alvin-record%3A657596" },
+    "10": { "title": "Volume 10", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657589&c=10#alvin-record%3A657589" },
+    "11": { "title": "Volume 11", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657594&c=11#alvin-record%3A657594" },
+    "12": { "title": "Volume 12", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657611&c=12#alvin-record%3A657611" },
+    "13": { "title": "Volume 13", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657603&c=13#alvin-record%3A657603" },
+    "14": { "title": "Volume 14", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657608&c=14#alvin-record%3A657608" },
+    "15": { "title": "Volume 15", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657599&c=15#alvin-record%3A657599" },
+    "16": { "title": "Volume 16", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657582&c=16#alvin-record%3A657582" },
+    "17": { "title": "Volume 17", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657606&c=17#alvin-record%3A657606" },
+    "18": { "title": "Volume 18", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657613&c=18#alvin-record%3A657613" },
+    "19": { "title": "Volume 19", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657591&c=19#alvin-record%3A657591" },
+    "20": { "title": "Volume 20", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657609&c=20#alvin-record%3A657609" },
+    "21": { "title": "Volume 21", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657567&c=21#alvin-record%3A657567" },
+    "22": { "title": "Volume 22", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657601&c=22#alvin-record%3A657601" }
+  }
+}

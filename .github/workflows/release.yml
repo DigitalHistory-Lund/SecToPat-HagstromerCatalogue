@@ -1,0 +1,30 @@
+name: Release PDF
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate card PDF
+        run: python -m src.generate_card_pdf
+
+      - name: Create release with PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HagstromerCatalogue_*.pdf
+          generate_release_notes: true
