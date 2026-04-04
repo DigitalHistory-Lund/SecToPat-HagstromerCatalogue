@@ -179,7 +179,7 @@ def render_chunk_qmd(
         for col, row, stem in sorted_cards:
             txt_path = transcriptions_dir / f"{stem}.txt"
             text = txt_path.read_text().rstrip() if txt_path.exists() else ""
-            img_path = f"../../extracted_cards/{stem}.png"
+            img_path = f"../../cards_web/{stem}.jpg"
             edit_url = f"{repo_url}/edit/main/transcriptions/" f"{stem}.txt"
 
             lines.append("::: {.card-entry}")

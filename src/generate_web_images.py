@@ -8,7 +8,7 @@ from pathlib import Path
 import cv2
 from tqdm import tqdm
 
-from .config import Config, PROJECT_ROOT
+from .config import Config
 
 WEB_IMG_WIDTH = 800
 WEB_IMG_QUALITY = 80
@@ -26,9 +26,7 @@ def downscale_card(src: Path, dst: Path) -> Path:
         aspect = w / h
         new_w = WEB_IMG_WIDTH
         new_h = int(new_w / aspect)
-        img = cv2.resize(
-            img, (new_w, new_h), interpolation=cv2.INTER_AREA
-        )
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
     ok, buf = cv2.imencode(
         ".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, WEB_IMG_QUALITY]
@@ -73,12 +71,9 @@ def generate_web_images(
 
     if workers > 1 and len(pending) > 1:
         with tqdm(total=len(pending), unit="card") as bar:
-            with ProcessPoolExecutor(
-                max_workers=workers
-            ) as pool:
+            with ProcessPoolExecutor(max_workers=workers) as pool:
                 futures = {
-                    pool.submit(downscale_card, s, d): s
-                    for s, d in pending
+                    pool.submit(downscale_card, s, d): s for s, d in pending
                 }
                 for future in as_completed(futures):
                     future.result()
