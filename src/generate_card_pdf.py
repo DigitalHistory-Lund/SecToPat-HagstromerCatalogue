@@ -317,6 +317,7 @@ def _render_card_page(
     usable_h,
     img_col_w,
     txt_col_w,
+    repo_url="",
 ):
     """Render a single page of card rows."""
     pdf_page = doc.new_page(width=PAGE_W, height=PAGE_H)
@@ -411,7 +412,7 @@ def _render_card_page(
         )
 
         # GitHub edit link (small, grey, clickable)
-        edit_url = f"https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue/edit/main/transcriptions/{stem}.txt"
+        edit_url = f"{repo_url}/edit/main/transcriptions/{stem}.txt"
         link_label = "Suggest improved transcription: "
         full_text = link_label + edit_url
         text_width = font.text_length(full_text, fontsize=5)
@@ -524,6 +525,7 @@ def build_pdf(
         version_text = "v" + tomllib.load(f)["project"]["version"]
 
     # --- Render ---
+    repo_url = metadata.get("repo_url", "") if metadata else ""
     if metadata:
         # Group page batches by volume
         volume_batches: OrderedDict[str, list] = OrderedDict()
@@ -576,6 +578,7 @@ def build_pdf(
                     usable_h,
                     img_col_w,
                     txt_col_w,
+                    repo_url,
                 )
                 overall_page += 1
 
@@ -597,6 +600,7 @@ def build_pdf(
                 usable_h,
                 img_col_w,
                 txt_col_w,
+                repo_url,
             )
         total_pages = len(page_batches)
 
