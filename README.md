@@ -1,3 +1,7 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19422611.svg)](https://doi.org/10.5281/zenodo.19422611)
+<a href="https://secretstopatents.org/"><img src="assets/SecToPat-logo.png"
+height="20" alt="Secrets to Patent"></a>
+
 # catalogue-hagstrom
 
 Extraction pipeline for the Hagstrom manuscript catalogue. Converts scanned PDF
@@ -26,10 +30,29 @@ This work is licensed under a
 
 If you use this catalogue in your research, please cite it as:
 
-> Johansson, M., Lundström, C., & Klein Käfer, N. (2025).
+> Johansson, M., Lundström, C., & Klein Käfer, N. (2026).
 > *Hagströmer Library Catalogue* [Data set].
 > Digital History Lund / Secrets to Patent.
-> https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue
+> https://doi.org/10.5281/zenodo.19422611
+
+BibTeX:
+
+```bibtex
+@software{mathias_johansson_2026_19422611,
+  author       = {Mathias Johansson and
+                  Lundström, Cecilia and
+                  Klein Käfer, Natacha},
+  title        = {DigitalHistory-Lund/SecToPat-HagstromerCatalogue:
+                   v0.1.1
+                  },
+  month        = apr,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {v0.1.1},
+  doi          = {10.5281/zenodo.19422611},
+  url          = {https://doi.org/10.5281/zenodo.19422611},
+}
+```
 
 ## Images
 
