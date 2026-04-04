@@ -16,7 +16,9 @@ from .extract_pages import extract_pages_from_pdf
 from .generate_card_pdf import main as generate_card_pdf_main
 from .generate_reader import generate_reader
 from .generate_site import generate_site as generate_site_main
+from .generate_web_images import generate_web_images
 from .ocr_cards import ocr_card
+from .patch_ms_codes import ocr_corners, patch_ms_codes
 from .subset import select_subset
 
 
@@ -42,6 +44,9 @@ def main() -> None:
             "card-pdf",
             "reader",
             "site",
+            "web-images",
+            "ocr-corners",
+            "patch-ms",
         ],
         help="Run a single step",
     )
@@ -69,6 +74,18 @@ def main() -> None:
         return
     if args.step == "site":
         generate_site_main()
+        return
+    if args.step == "web-images":
+        config = load_config()
+        generate_web_images(config, force=args.force, workers=args.workers)
+        return
+    if args.step == "ocr-corners":
+        config = load_config()
+        ocr_corners(config, force=args.force)
+        return
+    if args.step == "patch-ms":
+        config = load_config()
+        patch_ms_codes(config, force=args.force)
         return
 
     config = load_config()

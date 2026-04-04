@@ -17,6 +17,7 @@ class Config:
     ocr_output_dir: Path
     transcriptions_dir: Path
     reader_dir: Path
+    cards_web_dir: Path
     ocr_model: str
     seed: int
     num_pdf: int
@@ -65,6 +66,8 @@ def load_config() -> Config:
         transcriptions_dir=PROJECT_ROOT
         / os.environ.get("TRANSCRIPTIONS_DIR", "transcriptions"),
         reader_dir=PROJECT_ROOT / os.environ.get("READER_DIR", "reader"),
+        cards_web_dir=PROJECT_ROOT
+        / os.environ.get("CARDS_WEB_DIR", "cards_web"),
         ocr_model=os.environ.get("OCR_MODEL", "qwen3-vl:2b"),
         seed=int(os.environ.get("SEED", "1")),
         num_pdf=int(os.environ.get("NUM_PDF", "1")),
