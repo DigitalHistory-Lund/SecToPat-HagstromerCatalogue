@@ -1,0 +1,79 @@
+metadata-files:
+  - _build_info.yml
+
+project:
+  type: website
+  pre-render: python -m src.generate_site
+  output-dir: _site
+  render:
+    - index.qmd
+    - about.qmd
+    - site/**/*.qmd
+
+website:
+  title: "Hagströmer Library Catalogue"
+  search:
+    location: navbar
+    type: textbox
+    limit: 1000
+  navbar:
+    right:
+      - href: about.qmd
+        text: About this site
+      - icon: github
+        href: https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue
+  sidebar:
+    style: docked
+    logo: assets/SecToPat-logo.png
+    logo-href: https://secretstopatents.org/
+    contents:
+      - text: Volume 01
+        href: site/01/index.qmd
+      - text: Volume 02
+        href: site/02/index.qmd
+      - text: Volume 03
+        href: site/03/index.qmd
+      - text: Volume 04
+        href: site/04/index.qmd
+      - text: Volume 05
+        href: site/05/index.qmd
+      - text: Volume 06
+        href: site/06/index.qmd
+      - text: Volume 07
+        href: site/07/index.qmd
+      - text: Volume 08
+        href: site/08/index.qmd
+      - text: Volume 09
+        href: site/09/index.qmd
+      - text: Volume 10
+        href: site/10/index.qmd
+      - text: Volume 11
+        href: site/11/index.qmd
+      - text: Volume 12
+        href: site/12/index.qmd
+      - text: Volume 13
+        href: site/13/index.qmd
+      - text: Volume 14
+        href: site/14/index.qmd
+      - text: Volume 15
+        href: site/15/index.qmd
+      - text: Volume 16
+        href: site/16/index.qmd
+      - text: Volume 17
+        href: site/17/index.qmd
+      - text: Volume 18
+        href: site/18/index.qmd
+      - text: Volume 19
+        href: site/19/index.qmd
+      - text: Volume 20
+        href: site/20/index.qmd
+      - text: Volume 21
+        href: site/21/index.qmd
+      - text: Volume 22
+        href: site/22/index.qmd
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true

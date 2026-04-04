@@ -2,7 +2,9 @@
 
 import json
 import shutil
+import tomllib
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 
 from tqdm import tqdm
@@ -12,6 +14,8 @@ TRANSCRIPTIONS_DIR = PROJECT_ROOT / "transcriptions"
 METADATA_PATH = PROJECT_ROOT / "metadata.json"
 SITE_DIR = PROJECT_ROOT / "site"
 INDEX_PATH = PROJECT_ROOT / "index.qmd"
+BUILD_INFO_PATH = PROJECT_ROOT / "_build_info.yml"
+PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
 
 CHUNK_SIZE = 10
 
@@ -226,8 +230,20 @@ def render_chunk_qmd(
     return "\n".join(lines)
 
 
+def write_build_info() -> None:
+    """Write _build_info.yml with version and today's date."""
+    with open(PYPROJECT_PATH, "rb") as f:
+        version = tomllib.load(f)["project"]["version"]
+    today = date.today().isoformat()
+    BUILD_INFO_PATH.write_text(
+        "website:\n" "  page-footer:\n" f'    center: "v{version} | {today}"\n'
+    )
+    print(f"Wrote {BUILD_INFO_PATH}")
+
+
 def generate_site() -> None:
     """Generate all .qmd files for the Quarto catalogue site."""
+    write_build_info()
     metadata = load_metadata()
     repo_url = metadata.get("repo_url", "")
     volumes = discover_structure(TRANSCRIPTIONS_DIR)

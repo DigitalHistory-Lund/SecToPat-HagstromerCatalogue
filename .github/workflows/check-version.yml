@@ -1,0 +1,45 @@
+name: Check version bump
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install packaging
+        run: pip install packaging
+
+      - name: Compare version against main
+        run: |
+          pr_version=$(python -c "
+          import tomllib, pathlib
+          d = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+          print(d['project']['version'])
+          ")
+
+          git show origin/main:pyproject.toml > /tmp/main_pyproject.toml
+          main_version=$(python -c "
+          import tomllib, pathlib
+          d = tomllib.loads(pathlib.Path('/tmp/main_pyproject.toml').read_text())
+          print(d['project']['version'])
+          ")
+
+          echo "main: $main_version"
+          echo "PR:   $pr_version"
+
+          python -c "
+          from packaging.version import Version
+          main = Version('$main_version')
+          pr = Version('$pr_version')
+          if pr <= main:
+              raise SystemExit(
+                  f'::error::PR version ({pr}) must be higher than main ({main})'
+              )
+          print(f'Version bump OK: {main} -> {pr}')
+          "

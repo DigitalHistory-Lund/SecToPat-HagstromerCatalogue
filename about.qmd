@@ -1,0 +1,29 @@
+---
+title: About this site
+---
+
+The Hagströmer Library is part of Karolinska Institutet and consists of over
+150,000 books and journals connected to disciplines adjacent to the medical
+sciences. The main collection derives from Karolinska Institutet and the
+Swedish Medical Association (Svenska Läkareförbundet) and the collection
+specialises in material from the period 1600-1990. The mission of the library
+is to preserve the cultural heritage of Karolinska Institutet, and it is the
+core of the Medical History and Heritage unit (MHK) at Karolinska Institutet.
+
+As a part of the [_Secrets to Patent_](https://secretstopatents.org/) project,
+we have digitised and processed the catalogue cards for the library's main
+collection. Each card has been extracted from scanned volume pages, processed
+with OCR, and post-processed with to perform som basic cleaning and correction,
+such as extracting the top-corner of each card to make sure we got the
+catalogue code. All the original PDF-files are available on ALVIN, where they
+are published under a CC-00 license.
+
+The digitization and processing and hosting of the catalogue has been done by
+Mathias Johansson, Cecilia Lundström, and Natacha Klein
+Käfer using Python, the VLM `qwen3-vl:2b`, Ollama, Quarto, GitHub Pages and Claude.
+Small random samples of the OCR output have been manually reviewed.
+
+## Contact
+
+For questions or feedback, contact Mathias Johansson at
+[MathiasJohansson@kultur.lu.se](mailto:MathiasJohansson@kultur.lu.se).

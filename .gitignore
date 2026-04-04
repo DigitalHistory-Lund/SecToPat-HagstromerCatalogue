@@ -13,6 +13,7 @@ __pycache__/
 
 site/
 index.qmd
+_build_info.yml
 _site/
 .quarto/
 

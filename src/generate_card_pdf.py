@@ -47,7 +47,7 @@ IMG_JPEG_QUALITY = 85
 
 def discover_volumes(cards_dir: str) -> list[str]:
     """Discover available volume numbers from extracted cards."""
-    pattern = os.path.join(cards_dir, "*.png")
+    pattern = os.path.join(cards_dir, "*.jpg")
     volumes = set()
     for path in glob.glob(pattern):
         stem = os.path.splitext(os.path.basename(path))[0]
@@ -59,7 +59,7 @@ def discover_volumes(cards_dir: str) -> list[str]:
 
 def discover_pages(volume: str, cards_dir: str) -> list[str]:
     """Discover available page numbers for a volume."""
-    pattern = os.path.join(cards_dir, f"{volume}_*_*.png")
+    pattern = os.path.join(cards_dir, f"{volume}_*_*.jpg")
     pages = set()
     for path in glob.glob(pattern):
         stem = os.path.splitext(os.path.basename(path))[0]
@@ -71,7 +71,7 @@ def discover_pages(volume: str, cards_dir: str) -> list[str]:
 
 def find_cards(volume: str, page: str, cards_dir: str) -> list[str]:
     """Return sorted card image paths for a given volume/page."""
-    pattern = os.path.join(cards_dir, f"{volume}_{page}_*.png")
+    pattern = os.path.join(cards_dir, f"{volume}_{page}_*.jpg")
     paths = sorted(glob.glob(pattern))
     if not paths:
         print(f"Warning: no cards found matching {pattern}")
@@ -411,7 +411,7 @@ def _render_card_page(
         )
 
         # GitHub edit link (small, grey, clickable)
-        edit_url = f"https://github.com/DigitalHistory-Lund/SecToPat-CatCards/edit/main/transcriptions/{stem}.txt"
+        edit_url = f"https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue/edit/main/transcriptions/{stem}.txt"
         link_label = "Suggest improved transcription: "
         full_text = link_label + edit_url
         text_width = font.text_length(full_text, fontsize=5)
@@ -608,7 +608,7 @@ def build_pdf(
 def main() -> None:
     """Entry point for CLI and __main__.py dispatch."""
     cfg = load_config()
-    cards_dir = str(cfg.extracted_cards_dir)
+    cards_dir = str(cfg.cards_web_dir)
     ocr_dir = str(cfg.transcriptions_dir)
 
     if len(sys.argv) > 2:
@@ -647,8 +647,11 @@ def main() -> None:
                 )
                 for p in pages:
                     card_paths.extend(find_cards(volume, p, cards_dir))
-        output = "all_cards.pdf"
         metadata = load_metadata()
+        _pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+        with open(_pyproject, "rb") as f:
+            version = tomllib.load(f)["project"]["version"]
+        output = f"HagstromerCatalogue_{version}.pdf"
 
     build_pdf(card_paths, ocr_dir, output, metadata)
 

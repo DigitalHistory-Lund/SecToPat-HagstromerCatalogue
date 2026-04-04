@@ -29,11 +29,11 @@ If you use this catalogue in your research, please cite it as:
 > Johansson, M., Lundström, C., & Klein Käfer, N. (2025).
 > *Hagströmer Library Catalogue* [Data set].
 > Digital History Lund / Secrets to Patent.
-> https://github.com/DigitalHistory-Lund/SecToPat-CatCards
+> https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue
 
 ## Images
 
-TODO: find a permanent home for the images ([#6](https://github.com/DigitalHistory-Lund/SecToPat-CatCards/issues/6))
+TODO: find a permanent home for the images ([#6](https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue/issues/6))
 
 ## Pipeline
 
