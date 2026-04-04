@@ -2,10 +2,13 @@
   "title": "Hagstr\u00f6mer Library Catalogue",
   "summary": [
     "The Hagstr\u00f6mer Library is part of Karolinska Institutet and consists of over 150,000 books and journals connected to disciplines adjacent to the medical sciences. The main collection derives from Karolinska Institutet and the Swedish Medical Association (Svenska L\u00e4karef\u00f6rbundet) and the collection specialises in material from the period 1600-1990. The mission of the library is to preserve the cultural heritage of Karolinska Institutet, and it is the core of the Medical History and Heritage unit (MHK) at Karolinska Institutet.",
-    "Each card has been extracted from scanned volume pages, processed with OCR, and manually reviewed."
+    "As a part of the Secrets to Patent project, we have digitised and processed the catalogue cards for the library\u2019s main collection. Each card has been extracted from scanned volume pages, processed with OCR, and post-processed to perform basic cleaning and correction, such as extracting the top-corner of each card to identify the catalogue code. All the original PDF-files are available on ALVIN, where they are published under a CC-00 license."
   ],
+  "summary_short": "A digitised and OCR-processed catalogue of the Hagstr\u00f6mer Library\u2019s main collection. Createsd as part of the Secrets to Patent project.",
   "authors": [
-    "Digital History Lund"
+    "Mathias Johansson",
+    "Cecilia Lundstr\u00f6m",
+    "Natacha Klein K\u00e4fer"
   ],
   "library_url": "https://kib.ki.se/en/hagstromerbiblioteket/about-hagstromerbiblioteket",
   "repo_url": "https://github.com/DigitalHistory-Lund/SecToPat-CatCards",

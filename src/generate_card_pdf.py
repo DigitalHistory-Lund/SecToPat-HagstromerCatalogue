@@ -141,6 +141,17 @@ def _add_footer(page, font, version_text, page_number):
     tw_pnum.write_text(page, color=(0.5, 0.5, 0.5))
 
 
+def _centred_link(page, font, label, url, y, fontsize=9):
+    """Render a centred clickable link and return the y after it."""
+    tw = fitz.TextWriter(page.rect)
+    lw = font.text_length(label, fontsize=fontsize)
+    lx = (PAGE_W - lw) / 2
+    end = tw.append(fitz.Point(lx, y), label, font=font, fontsize=fontsize)
+    tw.write_text(page, color=(0.2, 0.2, 0.8))
+    page.insert_link({"kind": fitz.LINK_URI, "from": end[0], "uri": url})
+    return y + fontsize + 6
+
+
 def insert_cover_page(doc, font, metadata, version_text):
     """Insert the overall cover page (page 1)."""
     page = doc.new_page(width=PAGE_W, height=PAGE_H)
@@ -150,37 +161,39 @@ def insert_cover_page(doc, font, metadata, version_text):
     tw = fitz.TextWriter(page.rect)
     title_w = font.text_length(title, fontsize=24)
     tw.append(
-        fitz.Point((PAGE_W - title_w) / 2, PAGE_H * 0.30),
+        fitz.Point((PAGE_W - title_w) / 2, PAGE_H * 0.22),
         title,
         font=font,
         fontsize=24,
     )
     tw.write_text(page)
 
-    # Summary — centred block
+    # Summary — centred block (tall enough for 2 long paragraphs)
     raw_summary = metadata.get("summary", [])
     if isinstance(raw_summary, list):
         summary = "\n\n".join(raw_summary)
     else:
         summary = raw_summary
+    summary_top = PAGE_H * 0.27
+    summary_bottom = PAGE_H * 0.58
     if summary:
         summary_rect = fitz.Rect(
             MARGIN + 40,
-            PAGE_H * 0.35,
+            summary_top,
             PAGE_W - MARGIN - 40,
-            PAGE_H * 0.55,
+            summary_bottom,
         )
         page.insert_textbox(
             summary_rect,
             summary,
             fontname="F0",
             fontfile=(FONT_PATH if os.path.exists(FONT_PATH) else None),
-            fontsize=11,
+            fontsize=10,
             align=fitz.TEXT_ALIGN_CENTER,
         )
 
-    # Authors
-    y = PAGE_H * 0.58
+    # Authors — positioned below summary block
+    y = summary_bottom + 20
     for author in metadata.get("authors", []):
         tw_a = fitz.TextWriter(page.rect)
         aw = font.text_length(author, fontsize=11)
@@ -193,57 +206,22 @@ def insert_cover_page(doc, font, metadata, version_text):
         tw_a.write_text(page)
         y += 16
 
-    # Library URL — clickable link
+    # Links — flow below authors
+    y += 12
     library_url = metadata.get("library_url", "")
     if library_url:
-        tw_lib = fitz.TextWriter(page.rect)
-        lib_w = font.text_length(library_url, fontsize=9)
-        lib_x = (PAGE_W - lib_w) / 2
-        lib_y = PAGE_H * 0.62
-        lib_end = tw_lib.append(
-            fitz.Point(lib_x, lib_y),
-            library_url,
-            font=font,
-            fontsize=9,
-        )
-        tw_lib.write_text(page, color=(0.2, 0.2, 0.8))
-        lib_rect = lib_end[0]
-        page.insert_link(
-            {
-                "kind": fitz.LINK_URI,
-                "from": lib_rect,
-                "uri": library_url,
-            }
-        )
+        y = _centred_link(page, font, library_url, library_url, y)
 
-    # Repo URL — clickable link
     repo_url = metadata.get("repo_url", "")
     if repo_url:
-        tw_url = fitz.TextWriter(page.rect)
-        url_w = font.text_length(repo_url, fontsize=9)
-        url_x = (PAGE_W - url_w) / 2
-        url_y = PAGE_H * 0.66
-        url_end = tw_url.append(
-            fitz.Point(url_x, url_y),
-            repo_url,
-            font=font,
-            fontsize=9,
-        )
-        tw_url.write_text(page, color=(0.2, 0.2, 0.8))
-        url_rect = url_end[0]
-        page.insert_link(
-            {
-                "kind": fitz.LINK_URI,
-                "from": url_rect,
-                "uri": repo_url,
-            }
-        )
+        y = _centred_link(page, font, repo_url, repo_url, y)
 
-    # Version — centred below URL
+    # Version — below links
+    y += 10
     tw_v = fitz.TextWriter(page.rect)
     vw = font.text_length(version_text, fontsize=9)
     tw_v.append(
-        fitz.Point((PAGE_W - vw) / 2, PAGE_H * 0.72),
+        fitz.Point((PAGE_W - vw) / 2, y),
         version_text,
         font=font,
         fontsize=9,
@@ -314,24 +292,12 @@ def insert_volume_cover(
 
     source_url = vol_meta.get("source_url", "")
     if source_url:
-        tw_url = fitz.TextWriter(page.rect)
-        url_w = font.text_length(source_url, fontsize=9)
-        url_x = (PAGE_W - url_w) / 2
-        url_y = PAGE_H * 0.47
-        url_end = tw_url.append(
-            fitz.Point(url_x, url_y),
+        _centred_link(
+            page,
+            font,
+            "Original PDF on ALVIN",
             source_url,
-            font=font,
-            fontsize=9,
-        )
-        tw_url.write_text(page, color=(0.2, 0.2, 0.8))
-        url_rect = url_end[0]
-        page.insert_link(
-            {
-                "kind": fitz.LINK_URI,
-                "from": url_rect,
-                "uri": source_url,
-            }
+            PAGE_H * 0.47,
         )
 
     _add_footer(page, font, version_text, page_number)

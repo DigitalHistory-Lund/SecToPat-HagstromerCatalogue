@@ -75,9 +75,14 @@ def render_index_qmd(metadata: dict, volumes: dict) -> str:
         "---",
         "",
     ]
-    for paragraph in metadata.get("summary", []):
-        lines.append(paragraph)
+    short = metadata.get("summary_short")
+    if short:
+        lines.append(short)
         lines.append("")
+    else:
+        for paragraph in metadata.get("summary", []):
+            lines.append(paragraph)
+            lines.append("")
 
     lib_url = metadata.get("library_url", "")
     repo_url = metadata.get("repo_url", "")
@@ -107,6 +112,7 @@ def render_index_qmd(metadata: dict, volumes: dict) -> str:
 def render_volume_index(
     vol: str,
     pages: dict[str, list[tuple[str, str, str]]],
+    source_url: str = "",
 ) -> str:
     """Generate site/{vol}/index.qmd with chunk listing."""
     n_cards = sum(len(cards) for cards in pages.values())
@@ -118,6 +124,11 @@ def render_volume_index(
         "",
         f"{len(pages)} pages, {n_cards} cards.",
         "",
+    ]
+    if source_url:
+        lines.append(f"[Original PDF on ALVIN]({source_url})")
+        lines.append("")
+    lines += [
         "| Pages | Cards |",
         "|-------|------:|",
     ]
@@ -246,7 +257,9 @@ def generate_site() -> None:
             vol_dir.mkdir()
 
             # Volume index
-            vol_index = render_volume_index(vol, pages)
+            vol_meta = metadata.get("volumes", {}).get(vol, {})
+            source_url = vol_meta.get("source_url", "")
+            vol_index = render_volume_index(vol, pages, source_url)
             (vol_dir / "index.qmd").write_text(vol_index)
 
             # Chunk files

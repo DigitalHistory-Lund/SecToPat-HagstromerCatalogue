@@ -6,17 +6,30 @@ browsable output.
 
 ## Project
 
-TODO: add project and financier information ([#2](https://github.com/DigitalHistory-Lund/SecToPat-CatCards/issues/2))
+This catalogue is part of the [*Secrets to Patent*](https://secretstopatents.org/)
+project. The catalogue cards belong to the
+[Hagströmer Library](https://kib.ki.se/en/hagstromerbiblioteket/about-hagstromerbiblioteket)
+at Karolinska Institutet, which holds over 150,000 books and journals in
+the medical sciences from the period 1600–1990. The original scanned
+PDF volumes are available on
+[ALVIN](https://alvin-portal.org/) under a CC0 license.
 
-TODO: add card-owner information ([#3](https://github.com/DigitalHistory-Lund/SecToPat-CatCards/issues/3))
+**Contributors:** Mathias Johansson, Cecilia Lundström, Natacha Klein Käfer
 
 ## License
 
-TODO: add license ([#4](https://github.com/DigitalHistory-Lund/SecToPat-CatCards/issues/4))
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/)
+(CC BY-NC 4.0). See [LICENSE](LICENSE) for the full text.
 
 ## Citation
 
-TODO: create a CITATION.cff ([#5](https://github.com/DigitalHistory-Lund/SecToPat-CatCards/issues/5))
+If you use this catalogue in your research, please cite it as:
+
+> Johansson, M., Lundström, C., & Klein Käfer, N. (2025).
+> *Hagströmer Library Catalogue* [Data set].
+> Digital History Lund / Secrets to Patent.
+> https://github.com/DigitalHistory-Lund/SecToPat-CatCards
 
 ## Images
 
