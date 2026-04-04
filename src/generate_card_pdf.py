@@ -24,7 +24,7 @@ import cv2
 import fitz  # PyMuPDF
 from tqdm import tqdm
 
-from .config import load_config
+from .config import PROJECT_ROOT
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -611,9 +611,8 @@ def build_pdf(
 
 def main() -> None:
     """Entry point for CLI and __main__.py dispatch."""
-    cfg = load_config()
-    cards_dir = str(cfg.cards_web_dir)
-    ocr_dir = str(cfg.transcriptions_dir)
+    cards_dir = str(PROJECT_ROOT / "cards_web")
+    ocr_dir = str(PROJECT_ROOT / "transcriptions")
 
     if len(sys.argv) > 2:
         # Single volume + single page
