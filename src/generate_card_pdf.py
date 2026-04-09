@@ -212,9 +212,18 @@ def insert_cover_page(doc, font, metadata, version_text):
     if library_url:
         y = _centred_link(page, font, library_url, library_url, y)
 
+    doi = metadata.get("doi", "")
+    if doi:
+        doi_url = f"https://doi.org/{doi}"
+        y = _centred_link(page, font, f"DOI: {doi}", doi_url, y)
+
     repo_url = metadata.get("repo_url", "")
     if repo_url:
         y = _centred_link(page, font, repo_url, repo_url, y)
+        releases_url = repo_url + "/releases"
+        y = _centred_link(
+            page, font, "Download latest PDF version", releases_url, y
+        )
 
     # Version — below links
     y += 10

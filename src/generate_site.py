@@ -88,6 +88,14 @@ def render_index_qmd(metadata: dict, volumes: dict) -> str:
             lines.append(paragraph)
             lines.append("")
 
+    doi = metadata.get("doi", "")
+    if doi:
+        doi_url = f"https://doi.org/{doi}"
+        lines.append(
+            f"[![DOI](https://zenodo.org/badge/DOI/{doi}.svg)]" f"({doi_url})"
+        )
+        lines.append("")
+
     lib_url = metadata.get("library_url", "")
     repo_url = metadata.get("repo_url", "")
     if lib_url:
@@ -95,6 +103,8 @@ def render_index_qmd(metadata: dict, volumes: dict) -> str:
         lines.append("")
     if repo_url:
         lines.append(f"[GitHub repository]({repo_url})")
+        lines.append("")
+        lines.append(f"[Download latest PDF version]({repo_url}/releases)")
         lines.append("")
 
     lines.append(
