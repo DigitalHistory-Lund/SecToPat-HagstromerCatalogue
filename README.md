@@ -1,6 +1,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19422611.svg)](https://doi.org/10.5281/zenodo.19422611)
 <a href="https://secretstopatents.org/"><img src="assets/SecToPat-logo.png"
 height="20" alt="Secrets to Patent"></a>
+<a href="https://creativecommons.org/licenses/by-nc/4.0/"><img src="https://licensebuttons.net/l/by-nc/4.0/88x31.png"
+height="20" alt="CC BY-NC 4.0"></a>
 
 # catalogue-hagstrom
 

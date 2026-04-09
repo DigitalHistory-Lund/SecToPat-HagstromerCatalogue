@@ -228,6 +228,17 @@ def insert_cover_page(doc, font, metadata, version_text):
     )
     tw_v.write_text(page, color=(0.5, 0.5, 0.5))
 
+    # License
+    y += 20
+    _centred_link(
+        page,
+        font,
+        "Licensed under CC BY-NC 4.0",
+        "https://creativecommons.org/licenses/by-nc/4.0/",
+        y,
+        fontsize=9,
+    )
+
 
 def insert_toc_page(doc, font, metadata, volume_page_map, version_text):
     """Insert the Table of Contents (page 2)."""
