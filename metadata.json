@@ -11,6 +11,7 @@
     "Natacha Klein K\u00e4fer"
   ],
   "library_url": "https://kib.ki.se/en/hagstromerbiblioteket/about-hagstromerbiblioteket",
+  "doi": "10.5281/zenodo.19422611",
   "repo_url": "https://github.com/DigitalHistory-Lund/SecToPat-HagstromerCatalogue",
   "volumes": {
     "01": { "title": "Volume 01", "source_url": "https://alvin-portal.org/alvin/view.jsf?dswid=9887&searchType=EXTENDED&query=&aq=%5B%5B%7B%22HOST%22%3A%22alvin-record%3A657545%22%7D%5D%5D&aqe=%5B%5D&af=%5B%5D&pid=alvin-record%3A657566&c=1#alvin-record%3A657566" },

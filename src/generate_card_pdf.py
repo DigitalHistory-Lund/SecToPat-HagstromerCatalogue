@@ -212,9 +212,18 @@ def insert_cover_page(doc, font, metadata, version_text):
     if library_url:
         y = _centred_link(page, font, library_url, library_url, y)
 
+    doi = metadata.get("doi", "")
+    if doi:
+        doi_url = f"https://doi.org/{doi}"
+        y = _centred_link(page, font, f"DOI: {doi}", doi_url, y)
+
     repo_url = metadata.get("repo_url", "")
     if repo_url:
         y = _centred_link(page, font, repo_url, repo_url, y)
+        releases_url = repo_url + "/releases"
+        y = _centred_link(
+            page, font, "Download latest PDF version", releases_url, y
+        )
 
     # Version — below links
     y += 10
@@ -227,6 +236,17 @@ def insert_cover_page(doc, font, metadata, version_text):
         fontsize=9,
     )
     tw_v.write_text(page, color=(0.5, 0.5, 0.5))
+
+    # License
+    y += 20
+    _centred_link(
+        page,
+        font,
+        "Licensed under CC BY-NC 4.0",
+        "https://creativecommons.org/licenses/by-nc/4.0/",
+        y,
+        fontsize=9,
+    )
 
 
 def insert_toc_page(doc, font, metadata, volume_page_map, version_text):
